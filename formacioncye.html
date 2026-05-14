@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demon Hunters: Guardianas del Bien</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;image-rendering:pixelated;}
+body{background:#0a0a1a;font-family:'Press Start 2P',monospace;overflow:hidden;width:100vw;height:100vh;}
+
+#game-container{width:100vw;height:100vh;position:relative;}
+canvas{display:block;}
+
+/* ===== SCREENS ===== */
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;}
+.screen.active{display:flex;}
+
+/* ===== INTRO SCREEN ===== */
+#intro-screen{background:linear-gradient(180deg,#0a0010 0%,#1a0030 40%,#0d0025 100%);flex-direction:column;}
+.stars-bg{position:absolute;width:100%;height:100%;top:0;left:0;}
+.title-container{text-align:center;z-index:2;animation:titleFloat 3s ease-in-out infinite;}
+.game-title{font-size:clamp(12px,2.5vw,22px);color:#ff6ef7;text-shadow:0 0 10px #ff00ff,0 0 20px #ff00ff,4px 4px 0 #4a0050;line-height:1.8;letter-spacing:2px;}
+.game-subtitle{font-size:clamp(7px,1.3vw,12px);color:#a0ffff;text-shadow:0 0 8px #00ffff;margin-top:12px;letter-spacing:3px;}
+.press-start{font-size:clamp(8px,1.4vw,13px);color:#ffe44d;text-shadow:0 0 10px #ffaa00;margin-top:40px;animation:blink 1s step-end infinite;cursor:pointer;}
+.decorative-hunters{display:flex;gap:40px;margin:30px 0;}
+.mini-char{width:48px;height:48px;image-rendering:pixelated;}
+
+/* ===== CHAR SELECT ===== */
+#char-select{background:linear-gradient(180deg,#050015 0%,#0f0030 50%,#050015 100%);flex-direction:column;gap:20px;}
+.select-title{font-size:clamp(9px,1.6vw,15px);color:#ff6ef7;text-shadow:0 0 8px #ff00ff,3px 3px 0 #4a0050;text-align:center;margin-bottom:10px;}
+.select-subtitle{font-size:clamp(6px,1vw,9px);color:#a0a0ff;text-align:center;margin-bottom:20px;}
+.characters-grid{display:flex;gap:clamp(15px,3vw,40px);justify-content:center;align-items:flex-start;flex-wrap:wrap;}
+.char-card{background:#0a0025;border:3px solid #440088;padding:20px 15px;text-align:center;cursor:pointer;transition:all 0.15s;min-width:160px;max-width:200px;position:relative;flex:1;}
+.char-card:hover,.char-card.selected{border-color:#ff00ff;background:#150040;box-shadow:0 0 20px #ff00ff44,inset 0 0 20px #ff00ff11;transform:translateY(-4px);}
+.char-canvas{display:block;margin:0 auto 12px;image-rendering:pixelated;}
+.char-name{font-size:clamp(8px,1.4vw,13px);color:#ff88ff;text-shadow:2px 2px 0 #660066;margin-bottom:8px;}
+.char-role{font-size:clamp(5px,0.9vw,8px);color:#88aaff;margin-bottom:10px;line-height:1.6;}
+.char-stat{font-size:clamp(5px,0.8vw,7px);color:#aaffaa;margin:2px 0;}
+.char-stat span{color:#ffdd44;}
+.select-btn{font-family:'Press Start 2P',monospace;font-size:clamp(7px,1.2vw,11px);padding:10px 20px;background:#220055;color:#ff88ff;border:2px solid #aa00ff;cursor:pointer;margin-top:15px;transition:all 0.1s;}
+.select-btn:hover{background:#ff00ff;color:#000;transform:scale(1.05);}
+.back-btn{font-family:'Press Start 2P',monospace;font-size:clamp(6px,1vw,9px);padding:8px 16px;background:transparent;color:#886699;border:2px solid #443355;cursor:pointer;margin-top:10px;}
+.back-btn:hover{color:#ff88ff;border-color:#ff88ff;}
+
+/* ===== GAME SCREEN ===== */
+#game-screen{background:#1a3a1a;padding:0;}
+#gameCanvas{display:block;width:100%;height:100%;}
+
+/* ===== HUD ===== */
+#hud{position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:10;}
+#hud-bar{background:rgba(0,0,0,0.85);border-bottom:3px solid #ff00ff;padding:6px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+#hud-char-canvas{image-rendering:pixelated;flex-shrink:0;}
+.hud-info{flex:1;min-width:0;}
+.hud-name{font-size:clamp(5px,1vw,9px);color:#ff88ff;text-shadow:1px 1px 0 #660066;}
+.hud-xp-bar{width:100%;height:8px;background:#1a001a;border:1px solid #440044;margin-top:3px;position:relative;}
+.hud-xp-fill{height:100%;background:linear-gradient(90deg,#ff00ff,#aa00ff);transition:width 0.5s;}
+.hud-score{font-size:clamp(6px,1.1vw,10px);color:#ffdd44;text-shadow:1px 1px 0 #664400;flex-shrink:0;}
+.hud-hearts{display:flex;gap:3px;flex-shrink:0;}
+.heart-pixel{width:14px;height:14px;image-rendering:pixelated;}
+.hud-level{font-size:clamp(5px,0.9vw,8px);color:#aaffaa;flex-shrink:0;}
+#mission-panel{background:rgba(0,0,0,0.8);border:2px solid #00aaff;padding:6px 10px;margin:4px;font-size:clamp(5px,0.9vw,8px);color:#aaddff;display:none;}
+#mission-panel.visible{display:block;}
+
+/* ===== DIALOG ===== */
+#dialog-box{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);width:90%;max-width:700px;background:rgba(0,0,10,0.95);border:3px solid #00aaff;padding:15px;z-index:20;display:none;}
+#dialog-box.visible{display:block;}
+#dialog-portrait-canvas{float:left;margin-right:12px;image-rendering:pixelated;}
+#dialog-name{font-size:clamp(6px,1vw,9px);color:#ffdd44;margin-bottom:6px;}
+#dialog-text{font-size:clamp(5px,0.9vw,8px);color:#ddeeff;line-height:1.8;min-height:40px;}
+#dialog-options{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.dialog-opt{font-family:'Press Start 2P',monospace;font-size:clamp(5px,0.85vw,8px);background:transparent;color:#88ccff;border:2px solid #004488;padding:6px 10px;cursor:pointer;text-align:left;pointer-events:all;}
+.dialog-opt:hover{background:#002244;color:#aaffff;border-color:#00aaff;}
+.dialog-opt.correct{border-color:#44ff44;color:#aaffaa;}
+.dialog-opt.wrong{border-color:#ff4444;color:#ffaaaa;}
+
+/* ===== REWARD ===== */
+#reward-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,20,0.97);border:4px solid #ffdd00;padding:25px;text-align:center;z-index:30;display:none;min-width:280px;}
+#reward-popup.visible{display:block;animation:popIn 0.3s ease-out;}
+.reward-title{font-size:clamp(9px,1.6vw,14px);color:#ffdd00;text-shadow:0 0 10px #ffaa00,2px 2px 0 #664400;margin-bottom:15px;}
+.reward-badge-canvas{display:block;margin:10px auto;image-rendering:pixelated;}
+.reward-desc{font-size:clamp(5px,0.9vw,8px);color:#ffffaa;line-height:1.8;margin:10px 0;}
+.reward-pts{font-size:clamp(8px,1.4vw,13px);color:#44ff44;text-shadow:0 0 8px #00ff44;}
+.reward-close{font-family:'Press Start 2P',monospace;font-size:clamp(6px,1vw,9px);padding:10px 20px;background:#221100;color:#ffdd44;border:2px solid #ffaa00;cursor:pointer;margin-top:15px;}
+.reward-close:hover{background:#ffdd00;color:#000;}
+
+/* ===== LEVEL UP ===== */
+#levelup-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,20,0.97);border:4px solid #ff00ff;padding:25px;text-align:center;z-index:35;display:none;}
+#levelup-popup.visible{display:block;animation:popIn 0.3s ease-out;}
+.levelup-title{font-size:clamp(12px,2.2vw,20px);color:#ff66ff;text-shadow:0 0 15px #ff00ff,3px 3px 0 #440044;}
+.levelup-sub{font-size:clamp(7px,1.2vw,11px);color:#ffffaa;margin:10px 0;}
+
+/* ===== GAME OVER ===== */
+#gameover-screen{background:rgba(0,0,0,0.95);flex-direction:column;gap:20px;z-index:40;}
+.gameover-title{font-size:clamp(14px,3vw,28px);color:#ff4444;text-shadow:0 0 15px #ff0000,4px 4px 0 #440000;text-align:center;}
+.gameover-score{font-size:clamp(9px,1.6vw,14px);color:#ffdd44;text-align:center;}
+.gameover-msg{font-size:clamp(6px,1vw,9px);color:#aaaaff;text-align:center;line-height:1.8;max-width:500px;}
+.play-again-btn{font-family:'Press Start 2P',monospace;font-size:clamp(8px,1.4vw,13px);padding:12px 25px;background:#220000;color:#ff6666;border:3px solid #ff4444;cursor:pointer;margin-top:10px;}
+.play-again-btn:hover{background:#ff0000;color:#fff;}
+
+/* ===== ANIMATIONS ===== */
+@keyframes blink{50%{opacity:0;}}
+@keyframes titleFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+@keyframes popIn{from{transform:translate(-50%,-50%) scale(0.5);opacity:0;}to{transform:translate(-50%,-50%) scale(1);opacity:1;}}
+@keyframes sparkle{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
+.sparkle{animation:sparkle 1s ease-in-out infinite;}
+</style>
+</head>
+<body>
+<div id="game-container">
+
+<!-- INTRO SCREEN -->
+<div id="intro-screen" class="screen active">
+  <canvas class="stars-bg" id="starsCanvas"></canvas>
+  <div class="decorative-hunters">
+    <canvas id="intro-rumi" width="64" height="64" class="mini-char"></canvas>
+    <canvas id="intro-zoey" width="64" height="64" class="mini-char"></canvas>
+    <canvas id="intro-mira" width="64" height="64" class="mini-char"></canvas>
+  </div>
+  <div class="title-container">
+    <div class="game-title">✦ DEMON HUNTERS ✦<br>GUARDIANAS DEL BIEN</div>
+    <div class="game-subtitle">— FORMACIÓN CÍVICA Y ÉTICA —</div>
+    <div class="press-start" onclick="showCharSelect()">[ PRESIONA AQUÍ PARA JUGAR ]</div>
+  </div>
+</div>
+
+<!-- CHAR SELECT -->
+<div id="char-select" class="screen">
+  <div class="select-title">✦ ELIGE TU GUARDIANA ✦</div>
+  <div class="select-subtitle">cada heroína tiene sus propios valores especiales</div>
+  <div class="characters-grid">
+    <div class="char-card" id="card-rumi" onclick="selectChar('rumi')">
+      <canvas id="select-rumi" width="64" height="80" class="char-canvas"></canvas>
+      <div class="char-name">RUMI</div>
+      <div class="char-role">La Valiente<br>Guardiana del Respeto</div>
+      <div class="char-stat">Empatía: <span>★★★★★</span></div>
+      <div class="char-stat">Valentía: <span>★★★★☆</span></div>
+      <div class="char-stat">Bondad: <span>★★★☆☆</span></div>
+      <div class="char-stat" style="color:#ffaaff;margin-top:6px;font-size:clamp(4px,0.7vw,6px);">Poder: Escudo de Empatía</div>
+    </div>
+    <div class="char-card" id="card-zoey" onclick="selectChar('zoey')">
+      <canvas id="select-zoey" width="64" height="80" class="char-canvas"></canvas>
+      <div class="char-name">ZOEY</div>
+      <div class="char-role">La Inteligente<br>Guardiana de la Honestidad</div>
+      <div class="char-stat">Empatía: <span>★★★☆☆</span></div>
+      <div class="char-stat">Valentía: <span>★★★★☆</span></div>
+      <div class="char-stat">Bondad: <span>★★★★★</span></div>
+      <div class="char-stat" style="color:#aaffff;margin-top:6px;font-size:clamp(4px,0.7vw,6px);">Poder: Luz de la Verdad</div>
+    </div>
+    <div class="char-card" id="card-mira" onclick="selectChar('mira')">
+      <canvas id="select-mira" width="64" height="80" class="char-canvas"></canvas>
+      <div class="char-name">MIRA</div>
+      <div class="char-role">La Creativa<br>Guardiana de la Amistad</div>
+      <div class="char-stat">Empatía: <span>★★★★☆</span></div>
+      <div class="char-stat">Valentía: <span>★★★☆☆</span></div>
+      <div class="char-stat">Bondad: <span>★★★★★</span></div>
+      <div class="char-stat" style="color:#ffffaa;margin-top:6px;font-size:clamp(4px,0.7vw,6px);">Poder: Aura de Amistad</div>
+    </div>
+  </div>
+  <button class="select-btn" id="confirmBtn" onclick="confirmChar()" style="display:none;">▶ ¡COMENZAR AVENTURA!</button>
+  <button class="back-btn" onclick="showIntro()">◀ VOLVER</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen">
+  <canvas id="gameCanvas"></canvas>
+  <!-- HUD -->
+  <div id="hud">
+    <div id="hud-bar">
+      <canvas id="hud-char-canvas" width="32" height="32"></canvas>
+      <div class="hud-info">
+        <div class="hud-name" id="hud-name">RUMI</div>
+        <div class="hud-xp-bar"><div class="hud-xp-fill" id="hud-xp" style="width:0%"></div></div>
+      </div>
+      <div class="hud-level" id="hud-level">Nv.1</div>
+      <div class="hud-score" id="hud-score">⭐ 0</div>
+      <div class="hud-hearts" id="hud-hearts"></div>
+    </div>
+    <div id="mission-panel">📋 <span id="mission-text">Ayuda a los niños del pueblo</span></div>
+  </div>
+  <!-- Dialog -->
+  <div id="dialog-box">
+    <canvas id="dialog-portrait-canvas" width="48" height="48"></canvas>
+    <div id="dialog-name">???</div>
+    <div id="dialog-text"></div>
+    <div id="dialog-options"></div>
+  </div>
+  <!-- Reward Popup -->
+  <div id="reward-popup">
+    <div class="reward-title" id="reward-title">¡MISIÓN COMPLETADA!</div>
+    <canvas id="reward-badge" width="64" height="64" class="reward-badge-canvas"></canvas>
+    <div class="reward-desc" id="reward-desc">Descripción</div>
+    <div class="reward-pts" id="reward-pts">+100 pts</div>
+    <button class="reward-close" onclick="closeReward()">▶ CONTINUAR</button>
+  </div>
+  <!-- Level Up -->
+  <div id="levelup-popup">
+    <div class="levelup-title">✦ ¡NIVEL UP! ✦</div>
+    <div class="levelup-sub" id="levelup-text">¡Subiste al nivel 2!</div>
+    <div style="font-size:clamp(5px,0.9vw,8px);color:#88ffaa;margin:8px 0;">Nuevo poder desbloqueado</div>
+    <button class="reward-close" onclick="closeLevelUp()">▶ ¡GENIAL!</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover-screen" class="screen">
+  <div class="gameover-title">MISIÓN TERMINADA</div>
+  <div class="gameover-score" id="final-score">Puntuación: 0</div>
+  <div class="gameover-msg" id="final-msg">¡Sigue practicando los valores!</div>
+  <button class="play-again-btn" onclick="restartGame()">▶ JUGAR DE NUEVO</button>
+  <button class="back-btn" onclick="showCharSelect()">◀ CAMBIAR PERSONAJE</button>
+</div>
+
+</div>
+
+<script>
+// ==========================================
+// PIXEL ART RENDERER
+// ==========================================
+const P = (ctx,x,y,c,s=2)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,s,s);};
+const PR = (ctx,x,y,w,h,c,s=2)=>{ctx.fillStyle=c;ctx.fillRect(x*s,y*s,w*s,h*s);};
+
+// Character pixel art definitions
+const CHARS = {
+  rumi: {
+    colors:{hair:'#cc44aa',skin:'#f5c5a0',eyes:'#ff44aa',outfit:'#6622cc',acc:'#ff88dd',shine:'#ffaaee',dark:'#441133'},
+    drawFull(ctx,s=2){
+      const c=this.colors;
+      // Hair
+      PR(ctx,2,0,12,2,c.hair,s);PR(ctx,1,2,14,3,c.hair,s);
+      PR(ctx,0,4,3,4,c.hair,s);PR(ctx,13,4,3,4,c.hair,s);
+      // Face
+      PR(ctx,3,2,10,8,c.skin,s);
+      // Eyes
+      PR(ctx,4,4,2,2,c.eyes,s);PR(ctx,10,4,2,2,c.eyes,s);
+      P(ctx,5,4,c.shine,s);P(ctx,11,4,c.shine,s);
+      // Blush
+      PR(ctx,3,6,2,1,c.acc,s);PR(ctx,11,6,2,1,c.acc,s);
+      // Smile
+      P(ctx,5,7,c.dark,s);PR(ctx,6,8,4,1,c.dark,s);P(ctx,10,7,c.dark,s);
+      // Neck
+      PR(ctx,6,10,4,2,c.skin,s);
+      // Outfit body
+      PR(ctx,2,12,12,8,c.outfit,s);
+      // Stars on outfit
+      P(ctx,5,14,c.acc,s);P(ctx,9,14,c.acc,s);P(ctx,7,16,c.shine,s);
+      // Belt
+      PR(ctx,2,19,12,2,c.dark,s);PR(ctx,6,19,4,2,'#ffcc00',s);
+      // Arms
+      PR(ctx,0,12,3,7,c.outfit,s);PR(ctx,13,12,3,7,c.outfit,s);
+      // Hands
+      PR(ctx,0,19,3,2,c.skin,s);PR(ctx,13,19,3,2,c.skin,s);
+      // Legs
+      PR(ctx,3,21,4,5,c.dark,s);PR(ctx,9,21,4,5,c.dark,s);
+      // Boots
+      PR(ctx,2,26,5,4,c.acc,s);PR(ctx,9,26,5,4,c.acc,s);
+      // Hair ponytail
+      PR(ctx,13,1,3,6,c.hair,s);P(ctx,15,7,c.hair,s);
+    },
+    drawMini(ctx,s=1.5){
+      const c=this.colors;
+      PR(ctx,2,0,8,2,c.hair,s);PR(ctx,1,2,10,3,c.hair,s);
+      PR(ctx,2,2,8,6,c.skin,s);
+      PR(ctx,3,3,2,2,c.eyes,s);PR(ctx,7,3,2,2,c.eyes,s);
+      PR(ctx,2,8,8,6,c.outfit,s);
+      PR(ctx,0,8,2,5,c.outfit,s);PR(ctx,10,8,2,5,c.outfit,s);
+      PR(ctx,3,14,3,4,c.dark,s);PR(ctx,6,14,3,4,c.dark,s);
+    }
+  },
+  zoey: {
+    colors:{hair:'#2288ff',skin:'#ffe0c0',eyes:'#00ddff',outfit:'#115588',acc:'#44bbff',shine:'#aaddff',dark:'#001133'},
+    drawFull(ctx,s=2){
+      const c=this.colors;
+      PR(ctx,2,0,12,1,c.hair,s);PR(ctx,1,1,14,4,c.hair,s);
+      PR(ctx,0,3,2,5,c.hair,s);PR(ctx,14,3,2,5,c.hair,s);
+      PR(ctx,3,2,10,8,c.skin,s);
+      PR(ctx,4,4,2,2,c.eyes,s);PR(ctx,10,4,2,2,c.eyes,s);
+      P(ctx,4,4,c.shine,s);P(ctx,10,4,c.shine,s);
+      PR(ctx,3,6,2,1,c.acc,s);PR(ctx,11,6,2,1,c.acc,s);
+      PR(ctx,5,8,6,1,c.dark,s);
+      PR(ctx,6,10,4,2,c.skin,s);
+      PR(ctx,2,12,12,8,c.outfit,s);
+      // Tie/scarf
+      PR(ctx,6,12,4,6,c.acc,s);P(ctx,7,17,c.acc,s);P(ctx,8,18,c.acc,s);
+      PR(ctx,2,19,12,2,c.dark,s);
+      PR(ctx,0,12,3,7,c.outfit,s);PR(ctx,13,12,3,7,c.outfit,s);
+      PR(ctx,0,19,3,2,c.skin,s);PR(ctx,13,19,3,2,c.skin,s);
+      PR(ctx,3,21,4,5,c.dark,s);PR(ctx,9,21,4,5,c.dark,s);
+      PR(ctx,2,26,5,4,c.outfit,s);PR(ctx,9,26,5,4,c.outfit,s);
+      PR(ctx,14,0,2,8,c.hair,s);
+    },
+    drawMini(ctx,s=1.5){
+      const c=this.colors;
+      PR(ctx,2,0,8,2,c.hair,s);PR(ctx,1,1,10,4,c.hair,s);
+      PR(ctx,2,2,8,6,c.skin,s);
+      PR(ctx,3,3,2,2,c.eyes,s);PR(ctx,7,3,2,2,c.eyes,s);
+      PR(ctx,2,8,8,6,c.outfit,s);
+      PR(ctx,0,8,2,5,c.outfit,s);PR(ctx,10,8,2,5,c.outfit,s);
+      PR(ctx,3,14,3,4,c.dark,s);PR(ctx,6,14,3,4,c.dark,s);
+    }
+  },
+  mira: {
+    colors:{hair:'#ffcc00',skin:'#ffddb0',eyes:'#ff8800',outfit:'#885500',acc:'#ffee44',shine:'#fffaaa',dark:'#332200'},
+    drawFull(ctx,s=2){
+      const c=this.colors;
+      PR(ctx,2,0,12,2,c.hair,s);PR(ctx,1,2,14,2,c.hair,s);
+      PR(ctx,0,4,2,8,c.hair,s);PR(ctx,14,4,2,8,c.hair,s);
+      // Long hair sides
+      PR(ctx,0,12,2,6,c.hair,s);PR(ctx,14,12,2,6,c.hair,s);
+      PR(ctx,3,2,10,8,c.skin,s);
+      PR(ctx,4,4,2,2,c.eyes,s);PR(ctx,10,4,2,2,c.eyes,s);
+      P(ctx,4,4,c.shine,s);P(ctx,10,4,c.shine,s);
+      PR(ctx,3,6,2,1,c.acc,s);PR(ctx,11,6,2,1,c.acc,s);
+      P(ctx,5,8,c.dark,s);PR(ctx,6,8,4,1,c.dark,s);P(ctx,10,8,c.dark,s);
+      // Hair clip
+      PR(ctx,3,3,3,2,c.acc,s);
+      PR(ctx,6,10,4,2,c.skin,s);
+      PR(ctx,2,12,12,8,c.outfit,s);
+      // Pattern on outfit
+      P(ctx,5,13,c.acc,s);P(ctx,7,15,c.acc,s);P(ctx,9,13,c.acc,s);P(ctx,11,15,c.acc,s);
+      PR(ctx,2,19,12,2,c.dark,s);
+      PR(ctx,0,12,3,7,c.outfit,s);PR(ctx,13,12,3,7,c.outfit,s);
+      PR(ctx,0,19,3,2,c.skin,s);PR(ctx,13,19,3,2,c.skin,s);
+      PR(ctx,3,21,4,5,c.dark,s);PR(ctx,9,21,4,5,c.dark,s);
+      PR(ctx,2,26,5,4,c.hair,s);PR(ctx,9,26,5,4,c.hair,s);
+    },
+    drawMini(ctx,s=1.5){
+      const c=this.colors;
+      PR(ctx,2,0,8,2,c.hair,s);PR(ctx,1,1,10,3,c.hair,s);
+      PR(ctx,0,4,2,8,c.hair,s);PR(ctx,10,4,2,8,c.hair,s);
+      PR(ctx,2,2,8,6,c.skin,s);
+      PR(ctx,3,3,2,2,c.eyes,s);PR(ctx,7,3,2,2,c.eyes,s);
+      PR(ctx,2,8,8,6,c.outfit,s);
+      PR(ctx,0,8,2,5,c.outfit,s);PR(ctx,10,8,2,5,c.outfit,s);
+      PR(ctx,3,14,3,4,c.dark,s);PR(ctx,6,14,3,4,c.dark,s);
+    }
+  }
+};
+
+// NPC types
+const NPC_TYPES = {
+  kid_sad:{color:'#88aaff',hat:null,size:12},
+  kid_lost:{color:'#ffaa88',hat:null,size:12},
+  kid_bully:{color:'#ff6666',hat:null,size:12},
+  elder:{color:'#aaaaaa',hat:'#886644',size:14},
+  teacher:{color:'#44aa88',hat:'#226644',size:13},
+  friend:{color:'#ffaacc',hat:null,size:11}
+};
+
+function drawNPC(ctx,type,x,y,s=2,frame=0){
+  const t=NPC_TYPES[type]||NPC_TYPES.kid_sad;
+  const c=t.color;
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.3)';
+  ctx.fillRect((x-4)*s,(y+t.size)*s,8*s,2*s);
+  // Body
+  PR(ctx,x-2,y+4,4,6,c,s);
+  // Head
+  PR(ctx,x-3,y,6,5,c,s);
+  if(t.hat){PR(ctx,x-4,y-2,8,3,t.hat,s);}
+  // Eyes
+  const eyeX=frame%2===0?x-1:x;
+  P(ctx,eyeX-1,y+1,'#000',s);P(ctx,eyeX+1,y+1,'#000',s);
+  // Smile if friend
+  if(type==='friend'||type==='teacher'){P(ctx,x-1,y+3,'#cc6644',s);PR(ctx,x,y+3,2,1,'#cc6644',s);}
+  // Exclamation mark
+  if(type!=='friend'){
+    PR(ctx,x+4,y-4,2,3,'#ffff00',s);
+    PR(ctx,x+4,y+0,2,1,'#ffff00',s);
+  }
+  // Legs
+  P(ctx,x-2,y+10,'#4466aa',s);P(ctx,x+1,y+10,'#4466aa',s);
+  PR(ctx,x-2,y+11,2,2,'#2244aa',s);PR(ctx,x+1,y+11,2,2,'#2244aa',s);
+}
+
+function drawBadge(ctx,type,x,y,s=2){
+  const badges={
+    respeto:{bg:'#aa44ff',icon:'♥',color:'#ffaaff'},
+    honestidad:{bg:'#44aaff',icon:'★',color:'#aaddff'},
+    amistad:{bg:'#ffaa44',icon:'✿',color:'#ffe8aa'},
+    responsabilidad:{bg:'#44cc66',icon:'✔',color:'#aaffcc'},
+    valentia:{bg:'#ff6644',icon:'⚡',color:'#ffccaa'},
+    tolerancia:{bg:'#cc44cc',icon:'☯',color:'#ffaaff'}
+  };
+  const b=badges[type]||badges.respeto;
+  PR(ctx,x,y,16,16,b.bg,s);
+  PR(ctx,x+1,y+1,14,14,b.color,s);
+  ctx.font=`${12*s}px serif`;
+  ctx.fillText(b.icon,(x+3)*s,(y+13)*s);
+}
+
+// ==========================================
+// GAME STATE
+// ==========================================
+let selectedChar = null;
+let gameState = null;
+let gameCanvas, gameCtx;
+let animFrame = 0, lastTime = 0;
+let keys = {};
+let dialogActive = false;
+let rewardActive = false;
+let levelupActive = false;
+let cameraX = 0, cameraY = 0;
+
+// Map tiles
+const TILE_GRASS=0,TILE_PATH=1,TILE_WATER=2,TILE_TREE=3,TILE_FLOWER=4,TILE_HOUSE=5,TILE_SCHOOL=6;
+const TILE_SIZE=32;
+const MAP_W=30,MAP_H=25;
+
+// Colors for tiles
+const TILE_COLORS={
+  0:['#3a7a2a','#4a8a3a','#2a6a1a'],
+  1:['#c8aa72','#d4b878','#bc9e66'],
+  2:['#1a5a8a','#2a6a9a','#0a4a7a'],
+  3:['#1a5a0a','#2a6a1a','#0a4a0a'],
+  4:['#3a7a2a','#4a8a3a','#2a6a1a'],
+  5:['#8a4a2a','#9a5a3a','#7a3a1a'],
+  6:['#4a2a8a','#5a3a9a','#3a1a7a']
+};
+
+// Map layout
+const MAP_DATA=[];
+function buildMap(){
+  for(let y=0;y<MAP_H;y++){
+    MAP_DATA[y]=[];
+    for(let x=0;x<MAP_W;x++){
+      // Paths
+      if(y===12||(x===14&&y>6&&y<18)||(y===6&&x>8&&x<20)){MAP_DATA[y][x]=TILE_PATH;}
+      // Water
+      else if(x===0||x===1||x===28||x===29||y===0||y===1||y===23||y===24){MAP_DATA[y][x]=TILE_WATER;}
+      else{MAP_DATA[y][x]=TILE_GRASS;}
+    }
+  }
+  // Houses
+  [[5,4],[8,4],[11,4],[18,4],[21,4],[5,18],[8,18],[20,18],[23,18]].forEach(([x,y])=>{MAP_DATA[y][x]=TILE_HOUSE;});
+  // School
+  MAP_DATA[3][13]=TILE_SCHOOL;MAP_DATA[3][14]=TILE_SCHOOL;MAP_DATA[3][15]=TILE_SCHOOL;
+  MAP_DATA[4][13]=TILE_SCHOOL;MAP_DATA[4][14]=TILE_SCHOOL;MAP_DATA[4][15]=TILE_SCHOOL;
+  // Trees
+  [[3,8],[3,10],[3,15],[3,20],[25,8],[25,12],[25,16],[26,20],[10,20],[13,20],[17,20],[22,10]].forEach(([x,y])=>{MAP_DATA[y][x]=TILE_TREE;});
+  // Flowers
+  [[6,9],[9,9],[15,9],[20,9],[6,16],[10,16],[18,16],[24,10]].forEach(([x,y])=>{MAP_DATA[y][x]=TILE_FLOWER;});
+}
+buildMap();
+
+// Mission definitions
+const MISSIONS = [
+  {
+    id:'m1',npcType:'kid_sad',npcX:16,npcY:10,
+    name:'Luna',
+    intro:'¡Hola! Soy Luna. Mi amiga está triste porque la dejé sola y no sé qué hacer...',
+    question:'¿Qué debería hacer Luna para ayudar a su amiga?',
+    options:[
+      {text:'Ignorarla, no es mi problema',correct:false,feedback:'❌ Ignorar a alguien que está triste no es buena idea. Los amigos se ayudan.'},
+      {text:'Ir con ella, escucharla y preguntarle cómo se siente',correct:true,feedback:'✅ ¡Muy bien! La EMPATÍA es sentir lo que otros sienten y querer ayudar.'},
+      {text:'Reírme de ella',correct:false,feedback:'❌ Reírse de alguien triste lo lastima más. Debemos ser amables.'}
+    ],
+    badge:'amistad',value:'Empatía',reward:'Medalla de Amistad',pts:150,
+    lesson:'La EMPATÍA nos ayuda a entender y compartir los sentimientos de los demás. ¡Un buen amigo siempre escucha!'
+  },
+  {
+    id:'m2',npcType:'kid_lost',npcX:20,npcY:15,
+    name:'Marco',
+    intro:'¡Ayuda! Encontré una cartera con dinero en el parque. ¿Qué hago?',
+    question:'¿Qué es lo correcto que debe hacer Marco?',
+    options:[
+      {text:'Quedármela, ¡qué suerte tuve!',correct:false,feedback:'❌ Quedarnos con lo ajeno no es honesto. ¡El dinero no nos pertenece!'},
+      {text:'Llevarla a la policía o dirección de la escuela',correct:true,feedback:'✅ ¡Excelente! La HONESTIDAD significa hacer lo correcto aunque nadie nos vea.'},
+      {text:'Tirarla para que no sea mi problema',correct:false,feedback:'❌ Tirarla no ayuda al dueño. Debemos ser responsables.'}
+    ],
+    badge:'honestidad',value:'Honestidad',reward:'Medalla de Honestidad',pts:150,
+    lesson:'La HONESTIDAD es decir la verdad y actuar con integridad. ¡Hacer lo correcto siempre vale la pena!'
+  },
+  {
+    id:'m3',npcType:'kid_bully',npcX:10,npcY:15,
+    name:'Sofía',
+    intro:'Hay un niño que molesta a mis compañeros en el recreo y nadie hace nada...',
+    question:'¿Cómo puede ayudar Sofía a sus compañeros?',
+    options:[
+      {text:'Decirle al maestro y defender a mis compañeros',correct:true,feedback:'✅ ¡Correcto! La VALENTÍA es hacer lo bueno aunque sea difícil. ¡Pedir ayuda es de valientes!'},
+      {text:'También unirme a molestar',correct:false,feedback:'❌ Unirnos al bullying lastima a los demás y no está bien.'},
+      {text:'Ignorarlo, no me importa',correct:false,feedback:'❌ Ignorar el bullying permite que continúe. Todos merecemos respeto.'}
+    ],
+    badge:'valentia',value:'Valentía',reward:'Medalla de Valentía',pts:200,
+    lesson:'La VALENTÍA es defender lo justo y pedir ayuda cuando alguien es maltratado. ¡Ser valiente es proteger a los demás!'
+  },
+  {
+    id:'m4',npcType:'elder',npcX:7,npcY:13,
+    name:'Abuela Rosa',
+    intro:'¡Jovencito! Se me cayeron mis cosas y tengo problemas para agacharme...',
+    question:'¿Qué es lo más respectuoso que puedes hacer?',
+    options:[
+      {text:'Ayudarle a recoger sus cosas con una sonrisa',correct:true,feedback:'✅ ¡Perfecto! El RESPETO significa tratar a todos con amabilidad, especialmente a los mayores.'},
+      {text:'Pasar de largo, tengo prisa',correct:false,feedback:'❌ Ignorar a quien necesita ayuda no es respetuoso ni solidario.'},
+      {text:'Reírme porque se le cayeron las cosas',correct:false,feedback:'❌ Reírse de las dificultades de alguien es cruel y falta de respeto.'}
+    ],
+    badge:'respeto',value:'Respeto',reward:'Medalla de Respeto',pts:150,
+    lesson:'El RESPETO es tratar a todos con dignidad y consideración. ¡Las personas mayores merecen nuestra ayuda y admiración!'
+  },
+  {
+    id:'m5',npcType:'teacher',npcX:14,npcY:8,
+    name:'Maestra Ana',
+    intro:'Mis alumnos no han entregado su tarea. Un niño dice que la hizo solo, pero en realidad la copió...',
+    question:'¿Qué debería hacer el niño que copió la tarea?',
+    options:[
+      {text:'Seguir diciendo que la hizo solo',correct:false,feedback:'❌ Seguir mintiendo empeora las cosas y no ayuda a aprender.'},
+      {text:'Decir la verdad y comprometerse a hacerla él mismo',correct:true,feedback:'✅ ¡Muy bien! La RESPONSABILIDAD es cumplir con nuestros deberes honestamente.'},
+      {text:'Culpar a otro compañero',correct:false,feedback:'❌ Culpar a otros de nuestros errores no es justo ni honesto.'}
+    ],
+    badge:'responsabilidad',value:'Responsabilidad',reward:'Medalla de Responsabilidad',pts:175,
+    lesson:'La RESPONSABILIDAD es cumplir con nuestras obligaciones y asumir las consecuencias de nuestros actos con honestidad.'
+  },
+  {
+    id:'m6',npcType:'kid_sad',npcX:22,npcY:12,
+    name:'Tomás',
+    intro:'En mi clase hay un niño nuevo de otro país que habla diferente y algunos se burlan de él...',
+    question:'¿Qué debería hacer Tomás?',
+    options:[
+      {text:'También burlarme porque es diferente',correct:false,feedback:'❌ Burlarse de alguien por ser diferente es discriminación y está muy mal.'},
+      {text:'Invitarlo a jugar y hacerlo sentir bienvenido',correct:true,feedback:'✅ ¡Increíble! La TOLERANCIA y INCLUSIÓN nos hacen mejores personas y amigos.'},
+      {text:'Ignorarlo porque no lo conozco',correct:false,feedback:'❌ Ignorar a alguien que está solo y siendo maltratado no es solidario.'}
+    ],
+    badge:'tolerancia',value:'Tolerancia',reward:'Medalla de Tolerancia',pts:200,
+    lesson:'La TOLERANCIA es respetar y aceptar las diferencias de los demás. ¡Todos somos únicos y eso nos hace especiales!'
+  }
+];
+
+// ==========================================
+// DRAW STARS BG
+// ==========================================
+function initStars(){
+  const c=document.getElementById('starsCanvas');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#0a0010';ctx.fillRect(0,0,c.width,c.height);
+  for(let i=0;i<200;i++){
+    const x=Math.random()*c.width,y=Math.random()*c.height;
+    const r=Math.random()*1.5+0.5;
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*0.8+0.2})`;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  // Draw decorative intro characters
+  const chars=['rumi','zoey','mira'];
+  chars.forEach((ch,i)=>{
+    const cv=document.getElementById(`intro-${ch}`);
+    const cx=cv.getContext('2d');
+    cx.clearRect(0,0,64,64);
+    CHARS[ch].drawMini(cx,2);
+  });
+}
+
+// ==========================================
+// CHAR SELECT
+// ==========================================
+function drawSelectChar(id,charKey,s=2){
+  const cv=document.getElementById(id);
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  CHARS[charKey].drawFull(ctx,s);
+}
+
+function showIntro(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('intro-screen').classList.add('active');
+  initStars();
+}
+
+function showCharSelect(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('char-select').classList.add('active');
+  selectedChar=null;
+  document.getElementById('confirmBtn').style.display='none';
+  document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('selected'));
+  setTimeout(()=>{
+    drawSelectChar('select-rumi','rumi',2);
+    drawSelectChar('select-zoey','zoey',2);
+    drawSelectChar('select-mira','mira',2);
+  },50);
+}
+
+function selectChar(ch){
+  selectedChar=ch;
+  document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById(`card-${ch}`).classList.add('selected');
+  document.getElementById('confirmBtn').style.display='inline-block';
+}
+
+function confirmChar(){
+  if(!selectedChar)return;
+  startGame();
+}
+
+// ==========================================
+// GAME INIT
+// ==========================================
+function startGame(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('game-screen').classList.add('active');
+
+  gameCanvas=document.getElementById('gameCanvas');
+  gameCanvas.width=window.innerWidth;
+  gameCanvas.height=window.innerHeight;
+  gameCtx=gameCanvas.getContext('2d');
+  gameCtx.imageSmoothingEnabled=false;
+
+  // Init player
+  gameState={
+    player:{x:14*TILE_SIZE,y:12*TILE_SIZE,speed:2.5,dir:2,moving:false,walkFrame:0,walkTimer:0},
+    score:0,xp:0,xpNeeded:200,level:1,hearts:5,maxHearts:5,
+    missions:[...MISSIONS],
+    completedMissions:[],
+    currentMission:null,
+    badges:[],
+    particles:[],
+    npcs:[],
+    time:0
+  };
+
+  // Spawn NPCs for all missions
+  gameState.missions.forEach(m=>{
+    gameState.npcs.push({
+      missionId:m.id,x:m.npcX*TILE_SIZE,y:m.npcY*TILE_SIZE,
+      type:m.npcType,name:m.name,active:true,frame:0,timer:0
+    });
+  });
+
+  // Setup HUD
+  setupHUD();
+  updateHUD();
+
+  document.getElementById('mission-panel').classList.add('visible');
+  document.getElementById('mission-text').textContent='Busca a los niños que necesitan ayuda (⚡)';
+
+  // Input
+  keys={};
+  window.onkeydown=e=>{keys[e.key]=true;};
+  window.onkeyup=e=>{keys[e.key]=false;};
+  // Touch/click on canvas
+  gameCanvas.onclick=handleCanvasClick;
+
+  // Mobile arrow buttons
+  addMobileControls();
+
+  if(animFrame)cancelAnimationFrame(animFrame);
+  lastTime=performance.now();
+  gameLoop(lastTime);
+}
+
+function setupHUD(){
+  const hc=document.getElementById('hud-char-canvas');
+  hc.width=32;hc.height=32;
+  const ctx=hc.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  CHARS[selectedChar].drawMini(ctx,1.5);
+  document.getElementById('hud-name').textContent=selectedChar.toUpperCase();
+  renderHearts();
+}
+
+function renderHearts(){
+  const hh=document.getElementById('hud-hearts');
+  hh.innerHTML='';
+  for(let i=0;i<gameState.maxHearts;i++){
+    const cv=document.createElement('canvas');
+    cv.width=14;cv.height=14;cv.className='heart-pixel';
+    const ctx=cv.getContext('2d');
+    const filled=i<gameState.hearts;
+    ctx.fillStyle=filled?'#ff2244':'#441122';
+    // Heart pixel shape
+    [[1,0],[2,0],[4,0],[5,0],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],
+     [0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[1,3],[2,3],[3,3],[4,3],[5,3],
+     [2,4],[3,4],[4,4],[3,5]].forEach(([x,y])=>{ctx.fillRect(x*2,y*2,2,2);});
+    hh.appendChild(cv);
+  }
+}
+
+function updateHUD(){
+  document.getElementById('hud-score').textContent=`⭐ ${gameState.score}`;
+  document.getElementById('hud-level').textContent=`Nv.${gameState.level}`;
+  const pct=Math.min(100,(gameState.xp/gameState.xpNeeded)*100);
+  document.getElementById('hud-xp').style.width=pct+'%';
+  renderHearts();
+}
+
+// ==========================================
+// MOBILE CONTROLS
+// ==========================================
+function addMobileControls(){
+  let existing=document.getElementById('mobile-controls');
+  if(existing)existing.remove();
+  const div=document.createElement('div');
+  div.id='mobile-controls';
+  div.style.cssText='position:absolute;bottom:80px;right:20px;z-index:15;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;';
+  const btns=[
+    {r:0,c:1,key:'ArrowUp',txt:'▲'},
+    {r:1,c:0,key:'ArrowLeft',txt:'◀'},
+    {r:1,c:2,key:'ArrowRight',txt:'▶'},
+    {r:2,c:1,key:'ArrowDown',txt:'▼'}
+  ];
+  btns.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.textContent=b.txt;
+    btn.style.cssText=`grid-row:${b.r+1};grid-column:${b.c+1};width:44px;height:44px;background:rgba(0,0,0,0.7);color:#ff88ff;border:2px solid #660099;font-size:18px;cursor:pointer;font-family:'Press Start 2P',monospace;border-radius:4px;`;
+    btn.addEventListener('touchstart',e=>{e.preventDefault();keys[b.key]=true;},{passive:false});
+    btn.addEventListener('touchend',e=>{e.preventDefault();keys[b.key]=false;},{passive:false});
+    btn.addEventListener('mousedown',()=>keys[b.key]=true);
+    btn.addEventListener('mouseup',()=>keys[b.key]=false);
+    div.appendChild(btn);
+  });
+  document.getElementById('game-screen').appendChild(div);
+}
+
+// ==========================================
+// GAME LOOP
+// ==========================================
+function gameLoop(ts){
+  const dt=Math.min((ts-lastTime)/16.67,3);lastTime=ts;
+  gameState.time+=dt;
+  if(!dialogActive&&!rewardActive&&!levelupActive){
+    updatePlayer(dt);
+    updateParticles(dt);
+    checkNPCCollision();
+  }
+  renderGame();
+  animFrame=requestAnimationFrame(gameLoop);
+}
+
+function updatePlayer(dt){
+  const p=gameState.player;
+  let dx=0,dy=0;
+  if(keys['ArrowLeft']||keys['a']){dx=-p.speed*dt;p.dir=1;}
+  if(keys['ArrowRight']||keys['d']){dx=p.speed*dt;p.dir=0;}
+  if(keys['ArrowUp']||keys['w']){dy=-p.speed*dt;p.dir=3;}
+  if(keys['ArrowDown']||keys['s']){dy=p.speed*dt;p.dir=2;}
+  p.moving=dx!==0||dy!==0;
+  if(p.moving){
+    const nx=p.x+dx,ny=p.y+dy;
+    const tx=Math.floor(nx/TILE_SIZE),ty=Math.floor(ny/TILE_SIZE);
+    if(tx>=0&&tx<MAP_W&&ty>=0&&ty<MAP_H&&MAP_DATA[ty][tx]!==TILE_WATER&&MAP_DATA[ty][tx]!==TILE_TREE&&MAP_DATA[ty][tx]!==TILE_HOUSE&&MAP_DATA[ty][tx]!==TILE_SCHOOL){
+      p.x=Math.max(TILE_SIZE,Math.min((MAP_W-2)*TILE_SIZE,nx));
+      p.y=Math.max(TILE_SIZE,Math.min((MAP_H-2)*TILE_SIZE,ny));
+    }
+    p.walkTimer+=dt;
+    if(p.walkTimer>8){p.walkFrame=(p.walkFrame+1)%4;p.walkTimer=0;}
+  }
+  // Camera
+  const vpW=gameCanvas.width,vpH=gameCanvas.height;
+  cameraX=Math.max(0,Math.min(MAP_W*TILE_SIZE-vpW,p.x-vpW/2));
+  cameraY=Math.max(0,Math.min(MAP_H*TILE_SIZE-vpH,p.y-vpH/2));
+}
+
+function checkNPCCollision(){
+  const p=gameState.player;
+  const RANGE=48;
+  for(const npc of gameState.npcs){
+    if(!npc.active)continue;
+    const dx=p.x-npc.x,dy=p.y-npc.y;
+    if(Math.abs(dx)<RANGE&&Math.abs(dy)<RANGE){
+      const mission=gameState.missions.find(m=>m.id===npc.missionId);
+      if(mission){
+        gameState.currentMission=mission;
+        openDialog(npc,mission);
+        npc.active=false;
+        break;
+      }
+    }
+  }
+}
+
+function updateParticles(dt){
+  gameState.particles=gameState.particles.filter(p=>{
+    p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=0.1*dt;
+    return p.life>0;
+  });
+}
+
+function spawnParticles(x,y,color,n=12){
+  for(let i=0;i<n;i++){
+    const angle=Math.random()*Math.PI*2;
+    const spd=1+Math.random()*3;
+    gameState.particles.push({
+      x,y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd-2,
+      color,life:40+Math.random()*30,size:3+Math.random()*3
+    });
+  }
+}
+
+// ==========================================
+// RENDER
+// ==========================================
+function renderGame(){
+  const ctx=gameCtx;
+  const W=gameCanvas.width,H=gameCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(-cameraX,-cameraY);
+
+  // Draw map
+  const startX=Math.max(0,Math.floor(cameraX/TILE_SIZE));
+  const endX=Math.min(MAP_W,startX+Math.ceil(W/TILE_SIZE)+2);
+  const startY=Math.max(0,Math.floor(cameraY/TILE_SIZE));
+  const endY=Math.min(MAP_H,startY+Math.ceil(H/TILE_SIZE)+2);
+
+  for(let ty=startY;ty<endY;ty++){
+    for(let tx=startX;tx<endX;tx++){
+      const tile=MAP_DATA[ty][tx];
+      const cols=TILE_COLORS[tile]||TILE_COLORS[0];
+      const ci=(tx+ty)%3;
+      ctx.fillStyle=cols[ci];
+      ctx.fillRect(tx*TILE_SIZE,ty*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+      // Tile details
+      drawTileDetail(ctx,tile,tx,ty);
+    }
+  }
+
+  // Draw NPCs
+  for(const npc of gameState.npcs){
+    if(!npc.active)continue;
+    npc.timer++;
+    if(npc.timer>8){npc.frame=(npc.frame+1)%4;npc.timer=0;}
+    // Bounce exclamation
+    const bounce=Math.sin(gameState.time*0.15)*3;
+    drawNPCWorld(ctx,npc,bounce);
+  }
+
+  // Draw player
+  drawPlayer(ctx);
+
+  // Draw particles
+  for(const p of gameState.particles){
+    const alpha=p.life/60;
+    ctx.fillStyle=p.color;
+    ctx.globalAlpha=alpha;
+    ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+  }
+  ctx.globalAlpha=1;
+
+  ctx.restore();
+}
+
+function drawTileDetail(ctx,tile,tx,ty){
+  const px=tx*TILE_SIZE,py=ty*TILE_SIZE;
+  if(tile===TILE_PATH){
+    ctx.fillStyle='#b8946055';
+    for(let i=0;i<3;i++){ctx.fillRect(px+Math.sin(tx*7+i)*8+8,py+ty%4*7,2,2);}
+  }else if(tile===TILE_TREE){
+    // Tree trunk
+    ctx.fillStyle='#6b3a1a';ctx.fillRect(px+12,py+20,8,12);
+    // Canopy
+    ctx.fillStyle='#1a6a0a';ctx.fillRect(px+4,py+4,24,20);
+    ctx.fillStyle='#2a8a1a';ctx.fillRect(px+8,py,16,10);
+    ctx.fillStyle='#3aaa2a';ctx.fillRect(px+10,py+2,12,6);
+  }else if(tile===TILE_FLOWER){
+    ctx.fillStyle='#3a7a2a';ctx.fillRect(px,py,TILE_SIZE,TILE_SIZE);
+    const fc=['#ff6688','#ffaa44','#ff44aa','#aaff44','#44ffaa'];
+    [[6,6],[18,12],[10,20],[22,8],[4,18]].forEach(([fx,fy],i)=>{
+      ctx.fillStyle=fc[i%fc.length];
+      ctx.fillRect(px+fx-1,py+fy-1,4,4);
+      ctx.fillStyle='#ffff44';ctx.fillRect(px+fx,py+fy,2,2);
+    });
+  }else if(tile===TILE_HOUSE){
+    // Wall
+    ctx.fillStyle='#d4905a';ctx.fillRect(px+2,py+14,28,18);
+    // Roof
+    ctx.fillStyle='#883322';
+    ctx.beginPath();ctx.moveTo(px+16,py+2);ctx.lineTo(px+2,py+16);ctx.lineTo(px+30,py+16);ctx.closePath();ctx.fill();
+    // Door
+    ctx.fillStyle='#6b3a1a';ctx.fillRect(px+12,py+22,8,10);
+    // Window
+    ctx.fillStyle='#aaddff';ctx.fillRect(px+5,py+18,6,6);
+    ctx.fillStyle='#88bbdd';ctx.fillRect(px+21,py+18,6,6);
+  }else if(tile===TILE_SCHOOL){
+    ctx.fillStyle='#5533aa';ctx.fillRect(px,py,TILE_SIZE,TILE_SIZE);
+    ctx.fillStyle='#7755cc';ctx.fillRect(px+2,py+2,TILE_SIZE-4,TILE_SIZE*0.6);
+    ctx.fillStyle='#aaddff';ctx.fillRect(px+6,py+6,8,10);ctx.fillRect(px+18,py+6,8,10);
+    ctx.fillStyle='#331177';ctx.fillRect(px+13,py+22,6,10);
+    ctx.fillStyle='#ffdd44';ctx.fillRect(px+8,py+2,2,4);ctx.fillRect(px+22,py+2,2,4);
+    ctx.fillStyle='#ffaa00';ctx.fillRect(px+9,py,4,4);
+  }else if(tile===TILE_WATER){
+    const wave=Math.sin(gameState.time*0.05+tx*0.7)*2;
+    ctx.fillStyle='#2a7aaa';ctx.fillRect(px,py,TILE_SIZE,TILE_SIZE);
+    ctx.fillStyle='#3a8abf';ctx.fillRect(px,py+8+wave,TILE_SIZE,4);ctx.fillRect(px,py+20+wave,TILE_SIZE,4);
+  }
+}
+
+function drawNPCWorld(ctx,npc,bounce){
+  const X=npc.x,Y=npc.y+bounce;
+  const s=2;
+  const t=NPC_TYPES[npc.type]||NPC_TYPES.kid_sad;
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(X-8,Y+20,16,4);
+  // Body
+  ctx.fillStyle=t.color;ctx.fillRect(X-6,Y+8,12,14);
+  // Head
+  ctx.fillStyle=t.color;ctx.fillRect(X-7,Y-2,14,12);
+  if(t.hat){ctx.fillStyle=t.hat;ctx.fillRect(X-8,Y-7,16,6);}
+  // Eyes
+  ctx.fillStyle='#000';ctx.fillRect(X-4,Y+1,3,3);ctx.fillRect(X+1,Y+1,3,3);
+  ctx.fillStyle='#fff';ctx.fillRect(X-3,Y+1,2,2);ctx.fillRect(X+2,Y+1,2,2);
+  // Mouth
+  if(npc.type==='kid_sad'){ctx.fillStyle='#cc4422';ctx.fillRect(X-2,Y+7,5,2);}
+  else if(npc.type==='teacher'||npc.type==='friend'){ctx.fillStyle='#cc6633';ctx.fillRect(X-2,Y+6,6,3);}
+  else{ctx.fillStyle='#884422';ctx.fillRect(X-2,Y+6,5,2);}
+  // Legs
+  ctx.fillStyle='#334466';ctx.fillRect(X-5,Y+22,5,8);ctx.fillRect(X+1,Y+22,5,8);
+  // Shoes
+  ctx.fillStyle='#221122';ctx.fillRect(X-5,Y+29,6,4);ctx.fillRect(X+0,Y+29,6,4);
+  // Exclamation
+  ctx.fillStyle='#ffff00';ctx.fillRect(X+8,Y-14,4,10);ctx.fillRect(X+8,Y-2,4,4);
+  ctx.fillStyle='#ff8800';ctx.fillRect(X+9,Y-13,2,8);ctx.fillRect(X+9,Y-1,2,2);
+  // Name tag
+  ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(X-20,Y-22,40,12);
+  ctx.fillStyle='#ffffaa';ctx.font='8px "Press Start 2P",monospace';
+  ctx.textAlign='center';ctx.fillText(npc.name,X,Y-13);ctx.textAlign='left';
+}
+
+function drawPlayer(ctx){
+  const p=gameState.player;
+  const wf=p.walkFrame;
+  const legOff=p.moving?[0,3,0,-3][wf]:0;
+  const bobY=p.moving?[-1,0,1,0][wf]:0;
+
+  const X=p.x,Y=p.y+bobY;
+  const ch=CHARS[selectedChar].colors;
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(X-10,Y+18,20,5);
+  // Legs
+  ctx.fillStyle=ch.dark;ctx.fillRect(X-7,Y+10,6,10+legOff);ctx.fillRect(X+1,Y+10,6,10-legOff);
+  // Boots
+  ctx.fillStyle=ch.acc||ch.outfit;ctx.fillRect(X-8,Y+20+legOff,8,5);ctx.fillRect(X+0,Y+20-legOff,8,5);
+  // Body
+  ctx.fillStyle=ch.outfit;ctx.fillRect(X-9,Y+2,18,12);
+  // Arms
+  ctx.fillStyle=ch.outfit;
+  ctx.fillRect(X-14,Y+3,6,8);ctx.fillRect(X+8,Y+3,6,8);
+  // Hands
+  ctx.fillStyle=ch.skin;ctx.fillRect(X-14,Y+11,6,4);ctx.fillRect(X+8,Y+11,6,4);
+  // Neck
+  ctx.fillStyle=ch.skin;ctx.fillRect(X-3,Y-2,6,5);
+  // Head
+  ctx.fillStyle=ch.skin;ctx.fillRect(X-8,Y-12,16,12);
+  // Hair
+  ctx.fillStyle=ch.hair;ctx.fillRect(X-9,Y-14,18,5);ctx.fillRect(X-10,Y-12,4,8);ctx.fillRect(X+6,Y-12,4,8);
+  // Eyes
+  ctx.fillStyle=ch.eyes;ctx.fillRect(X-6,Y-9,4,4);ctx.fillRect(X+2,Y-9,4,4);
+  ctx.fillStyle='#fff';ctx.fillRect(X-5,Y-9,2,2);ctx.fillRect(X+3,Y-9,2,2);
+  // Star/aura around player when near NPC
+  if(Math.sin(gameState.time*0.1)>0.7){
+    ctx.fillStyle='rgba(255,220,0,0.4)';
+    ctx.beginPath();ctx.arc(X,Y+5,20,0,Math.PI*2);ctx.fill();
+  }
+}
+
+// ==========================================
+// DIALOG SYSTEM
+// ==========================================
+function openDialog(npc,mission){
+  dialogActive=true;
+  const db=document.getElementById('dialog-box');db.classList.add('visible');
+  // Draw NPC portrait
+  const pc=document.getElementById('dialog-portrait-canvas');
+  const pctx=pc.getContext('2d');pctx.clearRect(0,0,48,48);
+  const t=NPC_TYPES[npc.type];
+  pctx.fillStyle=t.color;pctx.fillRect(8,12,32,28);
+  pctx.fillStyle=t.color;pctx.fillRect(6,4,36,14);
+  if(t.hat){pctx.fillStyle=t.hat;pctx.fillRect(4,-2,40,10);}
+  pctx.fillStyle='#000';pctx.fillRect(12,8,6,6);pctx.fillRect(30,8,6,6);
+  pctx.fillStyle='#fff';pctx.fillRect(13,8,3,3);pctx.fillRect(31,8,3,3);
+  pctx.fillStyle='#cc4422';pctx.fillRect(16,18,16,4);
+
+  document.getElementById('dialog-name').textContent=`${npc.name} dice:`;
+  document.getElementById('dialog-text').textContent=mission.intro;
+
+  const opts=document.getElementById('dialog-options');
+  opts.innerHTML='';
+  // Show question after brief intro
+  setTimeout(()=>{
+    document.getElementById('dialog-text').textContent=mission.question;
+    mission.options.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='dialog-opt';
+      btn.textContent=`${['A','B','C'][i]}) ${opt.text}`;
+      btn.onclick=()=>chooseOption(opt,mission,npc);
+      opts.appendChild(btn);
+    });
+  },1800);
+}
+
+function chooseOption(opt,mission,npc){
+  const opts=document.getElementById('dialog-options');
+  const btns=opts.querySelectorAll('.dialog-opt');
+  btns.forEach(b=>b.disabled=true);
+
+  if(opt.correct){
+    document.getElementById('dialog-text').textContent=opt.feedback;
+    // Find the button and highlight
+    btns.forEach(b=>{if(b.textContent.includes(opt.text.substring(0,20)))b.className='dialog-opt correct';});
+    setTimeout(()=>{
+      closeDialog();
+      completeMission(mission,npc);
+    },2000);
+  }else{
+    document.getElementById('dialog-text').textContent=opt.feedback;
+    btns.forEach(b=>{if(b.textContent.includes(opt.text.substring(0,20)))b.className='dialog-opt wrong';});
+    gameState.hearts=Math.max(0,gameState.hearts-1);
+    updateHUD();
+    setTimeout(()=>{
+      if(gameState.hearts<=0){
+        closeDialog();
+        npc.active=true; // respawn npc
+        gameOver();
+        return;
+      }
+      // Re-enable with correct option hint
+      document.getElementById('dialog-text').textContent=`Inténtalo de nuevo... ${mission.question}`;
+      btns.forEach(b=>{b.disabled=false;b.className='dialog-opt';});
+    },2000);
+  }
+}
+
+function closeDialog(){
+  dialogActive=false;
+  document.getElementById('dialog-box').classList.remove('visible');
+  document.getElementById('dialog-options').innerHTML='';
+}
+
+// ==========================================
+// MISSION COMPLETE
+// ==========================================
+function completeMission(mission,npc){
+  // Score and XP
+  gameState.score+=mission.pts;
+  gameState.xp+=mission.pts;
+  gameState.completedMissions.push(mission.id);
+  // Remove from active missions
+  gameState.missions=gameState.missions.filter(m=>m.id!==mission.id);
+  // Particles
+  spawnParticles(npc.x,npc.y,'#ffdd00',20);
+  spawnParticles(npc.x,npc.y,'#ff88ff',15);
+  // Badge
+  gameState.badges.push(mission.badge);
+  // Show reward
+  showReward(mission);
+  // Check level up
+  checkLevelUp();
+  updateHUD();
+  // Update mission text
+  const remaining=gameState.missions.length;
+  document.getElementById('mission-text').textContent=
+    remaining>0?`Ayuda a ${remaining} niño(s) más`:'¡Has ayudado a todos! ¡Eres increíble!';
+  // Check if all done
+  if(remaining===0){
+    setTimeout(()=>gameWin(),4000);
+  }
+}
+
+function checkLevelUp(){
+  if(gameState.xp>=gameState.xpNeeded){
+    gameState.xp-=gameState.xpNeeded;
+    gameState.level++;
+    gameState.xpNeeded=Math.floor(gameState.xpNeeded*1.4);
+    gameState.hearts=Math.min(gameState.maxHearts,gameState.hearts+1);
+    showLevelUp();
+  }
+}
+
+function showReward(mission){
+  rewardActive=true;
+  const rp=document.getElementById('reward-popup');rp.classList.add('visible');
+  document.getElementById('reward-title').textContent=`¡${mission.value.toUpperCase()} DESBLOQUEADA!`;
+  document.getElementById('reward-desc').textContent=mission.lesson;
+  document.getElementById('reward-pts').textContent=`+${mission.pts} PUNTOS ✨`;
+  // Draw badge
+  const bc=document.getElementById('reward-badge');
+  const bctx=bc.getContext('2d');bctx.clearRect(0,0,64,64);
+  drawBadge(bctx,mission.badge,0,0,4);
+}
+
+function closeReward(){
+  rewardActive=false;
+  document.getElementById('reward-popup').classList.remove('visible');
+}
+
+function showLevelUp(){
+  levelupActive=true;
+  document.getElementById('levelup-text').textContent=`¡Subiste al nivel ${gameState.level}! ¡Eres una increíble guardiana!`;
+  document.getElementById('levelup-popup').classList.add('visible');
+}
+
+function closeLevelUp(){
+  levelupActive=false;
+  document.getElementById('levelup-popup').classList.remove('visible');
+}
+
+// ==========================================
+// GAME OVER / WIN
+// ==========================================
+function gameOver(){
+  cancelAnimationFrame(animFrame);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('gameover-screen').classList.add('active');
+  document.getElementById('final-score').textContent=`Puntuación final: ${gameState.score} ⭐`;
+  const msgs=['¡No te rindas! Los valores se aprenden con práctica. ¡Inténtalo de nuevo!',
+               '¡Cada error es una oportunidad de aprender! ¡Tú puedes!',
+               'Los guardianes del bien nunca se dan por vencidos. ¡Vuelve a intentarlo!'];
+  document.getElementById('final-msg').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+}
+
+function gameWin(){
+  cancelAnimationFrame(animFrame);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('gameover-screen').classList.add('active');
+  document.getElementById('gameover-title').style.color='#44ff44';
+  document.getElementById('gameover-title').textContent='¡MISIÓN COMPLETADA!';
+  document.getElementById('final-score').textContent=`Puntuación: ${gameState.score} ⭐ | Nivel: ${gameState.level}`;
+  document.getElementById('final-msg').textContent=`¡Felicitaciones, ${selectedChar.toUpperCase()}! Demostraste Empatía, Honestidad, Valentía, Respeto, Responsabilidad y Tolerancia. ¡Eres una verdadera Guardiana del Bien! 🌟`;
+}
+
+function restartGame(){
+  startGame();
+}
+
+// ==========================================
+// CANVAS CLICK (touch move)
+// ==========================================
+function handleCanvasClick(e){
+  if(dialogActive||rewardActive)return;
+  const rect=gameCanvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(gameCanvas.width/rect.width);
+  const my=(e.clientY-rect.top)*(gameCanvas.height/rect.height);
+  // We don't do click-to-move to keep it simple; touch controls handle movement
+}
+
+// ==========================================
+// INIT
+// ==========================================
+window.onload=()=>{
+  initStars();
+  // Animate intro chars
+  let introFrame=0;
+  setInterval(()=>{
+    introFrame++;
+    ['rumi','zoey','mira'].forEach(ch=>{
+      const cv=document.getElementById(`intro-${ch}`);
+      if(!cv)return;
+      const ctx=cv.getContext('2d');
+      ctx.clearRect(0,0,64,64);
+      // Simple idle animation
+      const bob=introFrame%20<10?0:1;
+      ctx.save();ctx.translate(0,bob);
+      CHARS[ch].drawMini(ctx,2);
+      ctx.restore();
+    });
+  },150);
+};
+
+window.onresize=()=>{
+  if(document.getElementById('starsCanvas').style.display!=='none'){
+    const c=document.getElementById('starsCanvas');
+    c.width=window.innerWidth;c.height=window.innerHeight;
+    initStars();
+  }
+  if(gameCanvas&&document.getElementById('game-screen').classList.contains('active')){
+    gameCanvas.width=window.innerWidth;
+    gameCanvas.height=window.innerHeight;
+  }
+};
+</script>
+</body>
+</html>

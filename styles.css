@@ -1,0 +1,175 @@
+@font-face {
+    font-family: 'Minecrafter.Alt';
+    src: url(fonts/Minecrafter.Alt.ttf);
+    font-weight: normal;
+    font-style: normal;
+}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: rgba(0, 0, 0, 0.333);
+  
+}
+.navbar {
+    width: 1345px;
+    height: 70px;
+    background: rgba(0, 0, 0, 0.712);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+}
+
+.logo {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.logo span {
+    font-size: 14px;
+    font-weight: normal;
+    opacity: 0.85;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background 0.3s;
+}
+
+.nav-links a:hover {
+    background: rgba(0, 0, 0, 0.769);
+}
+
+.fondo-video-1 {
+  position: relative;
+  height: 62h;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.fondo-video-1 video {
+  position: absolute;
+  inset: 0;
+  width: 105%;
+  height: 240%;
+  object-fit: cover;
+  object-position: center -300px;
+  z-index: -1;
+}
+.contenido-sobre-video {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+.we{
+  width: 320px;
+  height: 70px;
+  position: relative;
+  left: -300px;
+  top: 30px;
+}
+h1.minecraft {
+    font-family: "Minecrafter.Alt", sans-serif;
+    font-size: 90px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #939393;
+    text-shadow:
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+      2px 2px 0 #000,
+        3px 3px 0 #181818,
+        4px 4px 0 #000000,
+        5px 5px 0 #080808,
+        6px 6px 0 #333,
+        7px 7px 0 #222,
+        8px 8px 0 #000;
+}
+
+.separador {
+  background-image: url(img/piedra.jpg);
+    height: 15px;
+  background-repeat: repeat-x;
+  background-size: 15px 20px;
+}
+.separador2 {
+  background-image: url(img/80px-Obsidian_\(texture\)_pTU20170719.png);
+    height: 15px;
+  background-repeat: repeat-x;
+  background-size: 15px 20px;
+}
+
+.fondo-video {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
+.fondo-video video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(0.9px);
+}
+
+.contenido-video {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  backdrop-filter: brightness(1.1);
+}
+.contenido-video{
+  .sexoxd {
+  display: grid;
+  grid-template-columns: repeat(4, 200px);
+    column-gap: 60px;
+  row-gap: 100px; 
+}
+
+/* cada cuadro */
+.item {
+  display: block;
+  aspect-ratio: 4 / 3; /* cuadrados perfectos */
+  overflow: hidden;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+    border: 4px solid #ffffff;
+}
+
+/* imagen */
+.item img {
+  width: 120%;
+  height: 120%;
+  object-fit: cover;
+}
+
+/* efecto hover */
+.item:hover {
+  transform: scale(1.05);
+}
+}

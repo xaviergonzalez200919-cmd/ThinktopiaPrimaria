@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoQuiz Pixel - Adivina el País</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+  :root {
+    --pixel-blue: #3d9be9;
+    --pixel-yellow: #f7c948;
+    --pixel-red: #e84545;
+    --pixel-green: #4caf50;
+    --pixel-dark: #1a1a2e;
+    --pixel-darker: #0f0f1a;
+    --pixel-purple: #7c4dff;
+    --pixel-orange: #ff6d00;
+    --pixel-white: #f0f0f0;
+    --pixel-gray: #888;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+
+  body {
+    background: var(--pixel-darker);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(61,155,233,0.08) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(124,77,255,0.08) 0%, transparent 40%);
+    font-family: 'Press Start 2P', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
+    overflow-x: hidden;
+  }
+
+  /* Pixel grid background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 16px 16px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 780px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .title-pixel {
+    font-size: clamp(16px, 4vw, 28px);
+    color: var(--pixel-yellow);
+    text-shadow:
+      4px 4px 0 #b8860b,
+      -2px -2px 0 #8b6914;
+    letter-spacing: 2px;
+    line-height: 1.4;
+    animation: titleBounce 3s ease-in-out infinite;
+  }
+
+  @keyframes titleBounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--pixel-blue);
+    margin-top: 8px;
+    letter-spacing: 3px;
+  }
+
+  /* SCORE BAR */
+  .score-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    border: 3px solid var(--pixel-blue);
+    box-shadow: 4px 4px 0 rgba(61,155,233,0.3);
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    border-radius: 0;
+  }
+
+  .score-item {
+    text-align: center;
+  }
+
+  .score-label {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--pixel-gray);
+    display: block;
+    letter-spacing: 2px;
+  }
+
+  .score-value {
+    font-size: clamp(12px, 3vw, 18px);
+    color: var(--pixel-yellow);
+    text-shadow: 2px 2px 0 #8b6914;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .lives-display {
+    font-size: 18px;
+    letter-spacing: 4px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid var(--pixel-purple);
+    height: 14px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pixel-purple), var(--pixel-blue));
+    transition: width 0.4s steps(10);
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: white;
+    animation: blink 0.6s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* GAME CARD */
+  .game-card {
+    background: var(--pixel-dark);
+    border: 4px solid var(--pixel-blue);
+    box-shadow:
+      8px 8px 0 rgba(61,155,233,0.25),
+      inset 0 0 40px rgba(0,0,0,0.4);
+    padding: 0;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .card-top-bar {
+    background: var(--pixel-blue);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-top-bar span {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: white;
+    letter-spacing: 2px;
+  }
+
+  .pixel-dots {
+    display: flex; gap: 5px;
+  }
+
+  .pixel-dot {
+    width: 10px; height: 10px;
+    border-radius: 0;
+  }
+
+  .dot-red { background: var(--pixel-red); }
+  .dot-yellow { background: var(--pixel-yellow); }
+  .dot-green { background: var(--pixel-green); }
+
+  .card-inner {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* IMAGE */
+  .img-frame {
+    position: relative;
+    border: 4px solid var(--pixel-yellow);
+    box-shadow:
+      6px 6px 0 #8b6914,
+      12px 12px 0 rgba(247,201,72,0.15);
+    background: #000;
+    overflow: hidden;
+    max-width: 380px;
+    width: 100%;
+  }
+
+  .img-frame::before {
+    content: attr(data-label);
+    position: absolute;
+    top: 0; left: 0;
+    background: var(--pixel-yellow);
+    color: var(--pixel-dark);
+    font-size: 8px;
+    padding: 3px 8px;
+    z-index: 2;
+    letter-spacing: 1px;
+  }
+
+  .country-img {
+    width: 100%; height: 220px;
+    object-fit: cover;
+    display: block;
+    image-rendering: pixelated;
+    filter: contrast(1.1) saturate(1.2);
+    transition: opacity 0.3s;
+  }
+
+  /* Pixel scanline overlay */
+  .img-frame::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent, transparent 2px,
+      rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* QUESTION */
+  .question-box {
+    background: rgba(61,155,233,0.1);
+    border-left: 4px solid var(--pixel-blue);
+    padding: 10px 14px;
+    width: 100%;
+  }
+
+  .question-text {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--pixel-white);
+    line-height: 1.4;
+    letter-spacing: 1px;
+  }
+
+  .question-hint {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: var(--pixel-gray);
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* OPTIONS GRID */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .option-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(7px, 1.8vw, 10px);
+    padding: 12px 8px;
+    background: var(--pixel-dark);
+    border: 3px solid var(--pixel-purple);
+    color: var(--pixel-white);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+    box-shadow: 4px 4px 0 rgba(124,77,255,0.4);
+    text-align: center;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 rgba(124,77,255,0.6);
+    background: rgba(124,77,255,0.2);
+  }
+
+  .option-btn:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 rgba(124,77,255,0.4);
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  .option-btn.correct {
+    border-color: var(--pixel-green) !important;
+    background: rgba(76,175,80,0.25) !important;
+    box-shadow: 4px 4px 0 rgba(76,175,80,0.5) !important;
+    color: #7fff82 !important;
+    animation: correctPulse 0.5s ease;
+  }
+
+  .option-btn.wrong {
+    border-color: var(--pixel-red) !important;
+    background: rgba(232,69,69,0.2) !important;
+    box-shadow: 4px 4px 0 rgba(232,69,69,0.4) !important;
+    color: #ff8a8a !important;
+    animation: wrongShake 0.4s ease;
+  }
+
+  @keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .option-letter {
+    display: inline-block;
+    min-width: 18px;
+    height: 18px;
+    background: var(--pixel-purple);
+    color: white;
+    font-size: 8px;
+    line-height: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* FEEDBACK */
+  .feedback {
+    width: 100%;
+    padding: 12px 14px;
+    text-align: center;
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+  }
+
+  .feedback.show { opacity: 1; }
+
+  .feedback.correct-fb {
+    color: #7fff82;
+    border-color: var(--pixel-green);
+    background: rgba(76,175,80,0.1);
+    animation: fbSlide 0.3s ease;
+  }
+
+  .feedback.wrong-fb {
+    color: #ff8a8a;
+    border-color: var(--pixel-red);
+    background: rgba(232,69,69,0.1);
+    animation: fbSlide 0.3s ease;
+  }
+
+  @keyframes fbSlide {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* NEXT BTN */
+  .next-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 2vw, 12px);
+    padding: 14px 28px;
+    background: var(--pixel-yellow);
+    border: 4px solid #8b6914;
+    color: var(--pixel-dark);
+    cursor: pointer;
+    box-shadow: 6px 6px 0 #8b6914;
+    transition: all 0.1s;
+    display: none;
+    width: 100%;
+    letter-spacing: 1px;
+    animation: nextAppear 0.4s ease;
+  }
+
+  .next-btn.visible { display: block; }
+
+  .next-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 #8b6914;
+  }
+
+  .next-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0 #8b6914;
+  }
+
+  @keyframes nextAppear {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* SCREEN: START / END */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--pixel-dark);
+    border: 4px solid var(--pixel-yellow);
+    box-shadow: 8px 8px 0 #8b6914;
+  }
+
+  .screen.active { display: flex; }
+
+  .screen-title {
+    font-size: clamp(14px, 4vw, 22px);
+    color: var(--pixel-yellow);
+    text-shadow: 3px 3px 0 #8b6914;
+    line-height: 1.5;
+  }
+
+  .screen-sub {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--pixel-white);
+    line-height: 1.6;
+    letter-spacing: 1px;
+    max-width: 500px;
+  }
+
+  .start-btn, .restart-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 2.5vw, 13px);
+    padding: 16px 32px;
+    background: var(--pixel-green);
+    border: 4px solid #2e7d32;
+    color: white;
+    cursor: pointer;
+    box-shadow: 6px 6px 0 #2e7d32;
+    transition: all 0.1s;
+    letter-spacing: 1px;
+    animation: startPulse 2s ease-in-out infinite;
+  }
+
+  .restart-btn { background: var(--pixel-blue); border-color: #1565c0; box-shadow: 6px 6px 0 #1565c0; animation: none; }
+
+  @keyframes startPulse {
+    0%,100% { box-shadow: 6px 6px 0 #2e7d32; }
+    50% { box-shadow: 8px 8px 0 #2e7d32, 0 0 20px rgba(76,175,80,0.3); }
+  }
+
+  .start-btn:hover, .restart-btn:hover { transform: translate(-2px,-2px); }
+  .start-btn:active, .restart-btn:active { transform: translate(3px,3px); box-shadow: 3px 3px 0 #2e7d32; }
+
+  .pixel-char {
+    font-size: 48px;
+    animation: charBounce 1s ease-in-out infinite;
+  }
+
+  @keyframes charBounce {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(5deg); }
+  }
+
+  .end-score-box {
+    background: rgba(247,201,72,0.1);
+    border: 3px solid var(--pixel-yellow);
+    padding: 16px 28px;
+  }
+
+  .end-score-big {
+    font-size: clamp(20px, 6vw, 36px);
+    color: var(--pixel-yellow);
+    text-shadow: 3px 3px 0 #8b6914;
+  }
+
+  .end-msg {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--pixel-white);
+    margin-top: 8px;
+    letter-spacing: 2px;
+  }
+
+  .flag-emoji { font-size: 36px; margin-right: 8px; filter: none; image-rendering: auto; }
+
+  /* PIXEL CORNER DECORATIONS */
+  .pixel-corner {
+    position: absolute;
+    width: 12px; height: 12px;
+    background: var(--pixel-yellow);
+  }
+
+  /* Stars animation */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+
+  .star {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: white;
+    animation: starTwinkle var(--d) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  @keyframes starTwinkle {
+    0%,100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .option-btn { font-size: 8px; }
+    .country-img { height: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title-pixel">🌍 GEO PIXEL QUIZ 🌍</div>
+    <div class="subtitle">¡Adivina el País!</div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="pixel-char">🕹️</div>
+    <div class="screen-title">¡BIENVENIDO EXPLORADOR!</div>
+    <div class="screen-sub">
+      Mira las imágenes divertidas<br>
+      y adivina de qué país son.<br><br>
+      ¡Tienes 3 vidas! ❤️❤️❤️<br>
+      ¿Puedes adivinarlos todos?
+    </div>
+    <button class="start-btn" onclick="startGame()">▶ JUGAR AHORA</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" style="display:none; width:100%;">
+
+    <!-- Score bar -->
+    <div class="score-bar">
+      <div class="score-item">
+        <span class="score-label">PUNTOS</span>
+        <span class="score-value" id="scoreDisplay">000</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">VIDAS</span>
+        <span class="score-value lives-display" id="livesDisplay">❤️❤️❤️</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">PREGUNTA</span>
+        <span class="score-value" id="questionNum">1/10</span>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+
+    <!-- Card -->
+    <div class="game-card">
+      <div class="card-top-bar">
+        <div class="pixel-dots">
+          <div class="pixel-dot dot-red"></div>
+          <div class="pixel-dot dot-yellow"></div>
+          <div class="pixel-dot dot-green"></div>
+        </div>
+        <span id="cardCountryLabel">🌍 GEOGRAFÍA MUNDIAL</span>
+        <span>★★★</span>
+      </div>
+
+      <div class="card-inner">
+        <div class="img-frame" data-label="PISTA VISUAL">
+          <img id="countryImg" src="" alt="Pista visual" class="country-img" />
+        </div>
+
+        <div class="question-box">
+          <div class="question-text" id="questionText">¿De qué país es esta imagen?</div>
+          <div class="question-hint" id="questionHint"></div>
+        </div>
+
+        <div class="options-grid" id="optionsGrid"></div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">
+          SIGUIENTE PREGUNTA ▶
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- END SCREEN -->
+  <div class="screen" id="endScreen">
+    <div class="pixel-char" id="endChar">🏆</div>
+    <div class="screen-title" id="endTitle">¡JUEGO TERMINADO!</div>
+    <div class="end-score-box">
+      <div class="end-score-big" id="endScore">0</div>
+      <div class="end-msg" id="endMsg">¡Buen intento!</div>
+    </div>
+    <div class="screen-sub" id="endSub"></div>
+    <button class="restart-btn" onclick="restartGame()">↺ JUGAR DE NUEVO</button>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    country: "México",
+    flag: "🇲🇽",
+    continent: "América",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Tacos_de_Trompo.jpg/640px-Tacos_de_Trompo.jpg",
+    description: "¡Esta deliciosa comida con tortilla y carne es famosa en todo el mundo!",
+    hint: "Pista: país de pirámides y mariachis 🎵",
+    options: ["México", "España", "Brasil", "Argentina"]
+  },
+  {
+    country: "Japón",
+    flag: "🇯🇵",
+    continent: "Asia",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Shoyu-ramen.jpg/640px-Shoyu-ramen.jpg",
+    description: "¡Este caldo caliente con fideos es el favorito de muchos héroes de anime!",
+    hint: "Pista: tierra del sol naciente ☀️",
+    options: ["China", "Japón", "Corea", "Vietnam"]
+  },
+  {
+    country: "Italia",
+    flag: "🇮🇹",
+    continent: "Europa",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Eq_it-na_pizza-margherita_sep2005_sml.jpg/640px-Eq_it-na_pizza-margherita_sep2005_sml.jpg",
+    description: "¡Este plato redondo con queso y tomate lo inventaron aquí hace mucho tiempo!",
+    hint: "Pista: país con forma de bota 👢",
+    options: ["Francia", "España", "Italia", "Grecia"]
+  },
+  {
+    country: "Brasil",
+    flag: "🇧🇷",
+    continent: "América",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/2019_FIFA_Women%27s_World_Cup_qualifying_-_South_America_second_round_-_Brazil_vs._Bolivia_%2848015730242%29.jpg/640px-2019_FIFA_Women%27s_World_Cup_qualifying_-_South_America_second_round_-_Brazil_vs._Bolivia_%2848015730242%29.jpg",
+    description: "¡Este país es el campeón mundial de fútbol más veces! ⚽ ¡Son los mejores!",
+    hint: "Pista: el río Amazonas está aquí 🌳",
+    options: ["Argentina", "Colombia", "Brasil", "Uruguay"]
+  },
+  {
+    country: "China",
+    flag: "🇨🇳",
+    continent: "Asia",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/640px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg",
+    description: "¡Esta muralla gigantesca es tan larga que podría llegar de México a España!",
+    hint: "Pista: país con más personas en el mundo 🐼",
+    options: ["Japón", "China", "India", "Corea"]
+  },
+  {
+    country: "Egipto",
+    flag: "🇪🇬",
+    continent: "África",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Kheops-Pyramid.jpg/640px-Kheops-Pyramid.jpg",
+    description: "¡Estas construcciones enormes las hicieron hace miles de años! ¿Sabías que dentro hay momias?",
+    hint: "Pista: un gran río llamado Nilo pasa por aquí 🐊",
+    options: ["Arabia", "Israel", "Egipto", "Turquía"]
+  },
+  {
+    country: "Estados Unidos",
+    flag: "🇺🇸",
+    continent: "América",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/24701-nature-natural-beauty.jpg/640px-24701-nature-natural-beauty.jpg",
+    description: "¡Esta famosa estatua verde está en la entrada de una ciudad muy importante! Es un regalo de Francia.",
+    hint: "Pista: ¡Hamburguesas, Hollywood y la NASA! 🚀",
+    options: ["Francia", "Canadá", "Estados Unidos", "Reino Unido"]
+  },
+  {
+    country: "Australia",
+    flag: "🇦🇺",
+    continent: "Oceanía",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Kangaroo_australia.jpg/640px-Kangaroo_australia.jpg",
+    description: "¡Este animal saltarín con bolsa en la panza solo vive en un país del mundo!",
+    hint: "Pista: ¡Es un continente y también un país! 🦘",
+    options: ["Nueva Zelanda", "Sudáfrica", "Australia", "India"]
+  },
+  {
+    country: "Francia",
+    flag: "🇫🇷",
+    continent: "Europa",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Smiley.svg/240px-Smiley.svg.png",
+    description: "¡La Torre Eiffel es la estructura más famosa de este país europeo! ¡Es enorme!",
+    hint: "Pista: ¡Son famosos por el croissant y la baguette! 🥐",
+    options: ["Alemania", "Francia", "Bélgica", "Portugal"]
+  },
+  {
+    country: "India",
+    flag: "🇮🇳",
+    continent: "Asia",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/640px-Taj_Mahal_%28Edited%29.jpeg",
+    description: "¡Este palacio blanco tan bonito lo construyó un rey para su esposa! Es una de las maravillas del mundo.",
+    hint: "Pista: ¡Tierra de elefantes, tigres y curry! 🐘",
+    options: ["Pakistán", "India", "Bangladesh", "Nepal"]
+  }
+];
+
+const FALLBACK_IMAGES = {
+  "México": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGWOTrezJ1UeosSFhlmL6wax28Me_6K4CjwQ&s",
+  "Japón": "https://i.pinimg.com/736x/dc/b9/78/dcb978f2667529000c80524b258d0678.jpg",
+  "Italia": "https://i.redd.it/pov-youre-eating-pizza-with-mario-painted-by-me-v0-tmmsngqjauwe1.jpg?width=2835&format=pjpg&auto=webp&s=a5e3b0bc542680f2bf575922f8b51a34a13dd4ef",
+  "Brasil": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQWvFG01cu_d59ky4uOuOUkKC-AJxZqA5XmA&s",
+  "China": "https://www.infobae.com/resizer/v2/BL7NYCLFOBECPMA5XSMF3QOTY4.jpg?auth=8a01063c99468f20deacbbf8256cb7d08cbe7c21b5511d885db2f7454f89a19a&smart=true&width=1200&height=1200&quality=85",
+  "Egipto": "https://i.ytimg.com/vi/SQALZPebXKY/maxresdefault.jpg",
+  "Estados Unidos": "https://i.scdn.co/image/ab67616d00001e025c5f83be5b2474d272ebf3d8",
+  "Australia": "https://i.ytimg.com/vi/et7mUEy7yf4/hqdefault.jpg",
+  "Francia": "https://disney.images.edge.bamgrid.com/ripcut-delivery/v2/variant/disney/dcb0a241-a928-4719-9234-bec074d7a045/compose?format=webp&width=2560",
+  "India": "https://i.ytimg.com/vi/w-pIBtP21vc/maxresdefault.jpg"
+};
+
+let currentQ = 0;
+let score = 0;
+let lives = 3;
+let answered = false;
+let questions = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pad(n) { return String(n).padStart(3, '0'); }
+
+function startGame() {
+  questions = shuffle(QUESTIONS);
+  currentQ = 0; score = 0; lives = 3; answered = false;
+  document.getElementById('startScreen').classList.remove('active');
+  document.getElementById('endScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display = 'block';
+  loadQuestion();
+}
+
+function restartGame() {
+  document.getElementById('endScreen').classList.remove('active');
+  startGame();
+}
+
+function loadQuestion() {
+  const q = questions[currentQ];
+  answered = false;
+
+  document.getElementById('scoreDisplay').textContent = pad(score);
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+  document.getElementById('questionNum').textContent = `${currentQ + 1}/${questions.length}`;
+  document.getElementById('progressFill').style.width = `${(currentQ / questions.length) * 100}%`;
+
+  document.getElementById('cardCountryLabel').textContent = `${q.flag} CONTINENTE: ${q.continent}`;
+  document.getElementById('questionText').textContent = q.description;
+  document.getElementById('questionHint').textContent = q.hint;
+
+  const img = document.getElementById('countryImg');
+  img.style.opacity = '0';
+  img.src = q.image;
+  img.onload = () => { img.style.opacity = '1'; };
+  img.onerror = () => {
+    img.src = FALLBACK_IMAGES[q.country] || '';
+    img.style.opacity = '1';
+  };
+
+  const feedback = document.getElementById('feedback');
+  feedback.className = 'feedback';
+  feedback.textContent = '';
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.classList.remove('visible');
+
+  const opts = shuffle(q.options);
+  const letters = ['A', 'B', 'C', 'D'];
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span> ${opt}`;
+    btn.onclick = () => checkAnswer(opt, q.country, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function checkAnswer(selected, correct, clickedBtn) {
+  if (answered) return;
+  answered = true;
+
+  const allBtns = document.querySelectorAll('.option-btn');
+  const feedback = document.getElementById('feedback');
+
+  allBtns.forEach(b => {
+    b.disabled = true;
+    const label = b.textContent.trim().slice(2);
+    if (label === correct) b.classList.add('correct');
+  });
+
+  if (selected === correct) {
+    score += 100;
+    clickedBtn.classList.add('correct');
+    feedback.textContent = '✓ ¡CORRECTO! +100 PUNTOS 🎉';
+    feedback.className = 'feedback correct-fb show';
+    document.getElementById('scoreDisplay').textContent = pad(score);
+    playSound('correct');
+  } else {
+    clickedBtn.classList.add('wrong');
+    lives--;
+    document.getElementById('livesDisplay').textContent = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+    feedback.textContent = `✗ ERA ${correct.toUpperCase()} ${questions[currentQ].flag}`;
+    feedback.className = 'feedback wrong-fb show';
+    playSound('wrong');
+  }
+
+  document.getElementById('nextBtn').classList.add('visible');
+
+  if (lives <= 0) {
+    document.getElementById('nextBtn').textContent = '🏁 VER RESULTADO ▶';
+  }
+}
+
+function nextQuestion() {
+  currentQ++;
+
+  if (currentQ >= questions.length || lives <= 0) {
+    showEndScreen();
+    return;
+  }
+
+  loadQuestion();
+}
+
+function showEndScreen() {
+  document.getElementById('gameScreen').style.display = 'none';
+
+  const total = questions.length * 100;
+  const pct = Math.round((score / total) * 100);
+
+  let char, title, msg, sub;
+  if (lives <= 0) {
+    char = '💀'; title = '¡SIN VIDAS!'; msg = '¡Mejor suerte la próxima!';
+    sub = `Conseguiste ${score} puntos.\n¡Sigue practicando y lo lograrás!`;
+  } else if (pct >= 90) {
+    char = '🏆'; title = '¡INCREÍBLE!'; msg = '¡Eres un genio de la geografía!';
+    sub = `¡Puntuación perfecta casi! ¡Eres el mejor explorador del mundo!`;
+  } else if (pct >= 70) {
+    char = '⭐'; title = '¡MUY BIEN!'; msg = '¡Eres muy inteligente!';
+    sub = `¡Casi lo haces perfecto! ¡Sigue aprendiendo países!`;
+  } else if (pct >= 50) {
+    char = '😊'; title = '¡BUEN TRABAJO!'; msg = '¡Vas aprendiendo!';
+    sub = `¡El mundo es grande y tú lo estás descubriendo!`;
+  } else {
+    char = '🌱'; title = '¡SIGUE APRENDIENDO!'; msg = '¡La próxima te va mejor!';
+    sub = `¡Todos los exploradores empezaron así! ¡Inténtalo de nuevo!`;
+  }
+
+  document.getElementById('endChar').textContent = char;
+  document.getElementById('endTitle').textContent = title;
+  document.getElementById('endScore').textContent = pad(score) + ' PTS';
+  document.getElementById('endMsg').textContent = msg;
+  document.getElementById('endSub').textContent = sub;
+
+  const endScreen = document.getElementById('endScreen');
+  endScreen.classList.add('active');
+}
+
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    if (type === 'correct') {
+      o.frequency.setValueAtTime(523, ctx.currentTime);
+      o.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      o.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+    } else {
+      o.frequency.setValueAtTime(300, ctx.currentTime);
+      o.frequency.setValueAtTime(200, ctx.currentTime + 0.1);
+    }
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    o.start(); o.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+// Generate pixel stars
+(function() {
+  const s = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${1.5+Math.random()*3}s;--delay:${Math.random()*3}s;width:${Math.random()<0.3?4:2}px;height:${Math.random()<0.3?4:2}px`;
+    s.appendChild(star);
+  }
+})();
+</script>
+</body>
+</html>

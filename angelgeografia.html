@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adivina el Estado de México</title>
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg,#4caf50,#2196f3);
+      color:white;
+      text-align:center;
+      margin:0;
+      padding:20px;
+    }
+
+    .contenedor{
+      max-width:800px;
+      margin:auto;
+      background:rgba(0,0,0,0.35);
+      padding:30px;
+      border-radius:20px;
+      box-shadow:0 0 20px black;
+    }
+
+    h1{
+      font-size:45px;
+      color:yellow;
+      text-shadow:2px 2px 5px black;
+    }
+
+    #pregunta{
+      font-size:30px;
+      margin:30px 0;
+      background:rgba(255,255,255,0.15);
+      padding:20px;
+      border-radius:15px;
+    }
+
+    input{
+      width:70%;
+      padding:15px;
+      font-size:22px;
+      border:none;
+      border-radius:10px;
+      text-align:center;
+    }
+
+    button{
+      margin-top:20px;
+      padding:15px 25px;
+      font-size:22px;
+      border:none;
+      border-radius:10px;
+      background:#ff9800;
+      color:white;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    button:hover{
+      background:#ff5722;
+    }
+
+    #mensaje{
+      font-size:28px;
+      margin-top:20px;
+      color:yellow;
+    }
+
+    #puntos{
+      font-size:26px;
+      margin-top:20px;
+    }
+
+    #contador{
+      font-size:24px;
+      margin-bottom:15px;
+    }
+
+    #final{
+      margin-top:30px;
+      font-size:30px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <h1>🗺️ Adivina el Estado 🗺️</h1>
+
+  <div id="contador">Pregunta 1 de 10</div>
+
+  <div id="pregunta"></div>
+
+  <input type="text" id="respuesta"
+  placeholder="Escribe el nombre del estado">
+
+  <br>
+
+  <button onclick="verificar()">
+    Comprobar
+  </button>
+
+  <div id="mensaje"></div>
+
+  <div id="puntos">⭐ Puntos: 0</div>
+
+  <div id="final"></div>
+
+</div>
+
+<script>
+
+const estados = [
+
+  {
+    nombre:"Jalisco",
+    descripcion:"Aquí nació el mariachi y el tequila."
+  },
+
+  {
+    nombre:"Veracruz",
+    descripcion:"Tiene playas, mucho café y un puerto famoso."
+  },
+
+  {
+    nombre:"Yucatán",
+    descripcion:"Aquí está Chichén Itzá y mucha cultura maya."
+  },
+
+  {
+    nombre:"Nuevo León",
+    descripcion:"Su capital es Monterrey y tiene muchas montañas."
+  },
+
+  {
+    nombre:"Chiapas",
+    descripcion:"Es famoso por sus cascadas y selvas."
+  },
+
+  {
+    nombre:"Sonora",
+    descripcion:"Tiene mucho desierto y hace mucho calor."
+  },
+
+  {
+    nombre:"Sinaloa",
+    descripcion:"Es conocido por su música de banda."
+  },
+
+  {
+    nombre:"Puebla",
+    descripcion:"Aquí se prepara el mole poblano."
+  },
+
+  {
+    nombre:"Oaxaca",
+    descripcion:"Es famoso por sus alebrijes y su comida."
+  },
+
+  {
+    nombre:"Quintana Roo",
+    descripcion:"Aquí están Cancún y muchas playas turquesa."
+  }
+
+];
+
+let actual = 0;
+let puntos = 0;
+let correctas = 0;
+
+function cargarPregunta(){
+
+  document.getElementById("pregunta").innerHTML =
+    estados[actual].descripcion;
+
+  document.getElementById("respuesta").value = "";
+
+  document.getElementById("mensaje").innerHTML = "";
+
+  document.getElementById("contador").innerHTML =
+    "Pregunta " + (actual + 1) + " de 10";
+
+}
+
+function verificar(){
+
+  let respuesta =
+    document.getElementById("respuesta").value.toLowerCase().trim();
+
+  let correcto =
+    estados[actual].nombre.toLowerCase();
+
+  if(respuesta === correcto){
+
+    puntos += 2;
+    correctas++;
+
+    document.getElementById("mensaje").innerHTML =
+      "✅ ¡Correcto! Era " + estados[actual].nombre;
+
+  }else{
+
+    document.getElementById("mensaje").innerHTML =
+      "❌ Incorrecto. Era " + estados[actual].nombre;
+
+  }
+
+  document.getElementById("puntos").innerHTML =
+    "⭐ Puntos: " + puntos;
+
+  actual++;
+
+  setTimeout(()=>{
+
+    if(actual < estados.length){
+
+      cargarPregunta();
+
+    }else{
+
+      terminarJuego();
+
+    }
+
+  }, 2500);
+
+}
+
+function terminarJuego(){
+
+  document.getElementById("pregunta").innerHTML =
+    "🏆 Juego terminado 🏆";
+
+  document.getElementById("respuesta").style.display = "none";
+
+  document.querySelector("button").style.display = "none";
+
+  document.getElementById("contador").innerHTML = "";
+
+  document.getElementById("final").innerHTML = `
+  
+    ✅ Respuestas correctas: ${correctas} de 10
+    <br><br>
+    ⭐ Total de puntos: ${puntos}
+    <br><br>
+    🗺️ ¡Muy bien explorador de México!
+    <br><br>
+
+    <button onclick="location.reload()">
+      🔄 Jugar otra vez
+    </button>
+
+  `;
+
+}
+
+cargarPregunta();
+
+</script>
+
+</body>
+</html>

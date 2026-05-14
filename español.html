@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skibidi Toilet: La Guerra del Español</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+  :root {
+    --neon-green: #39ff14;
+    --neon-pink: #ff0090;
+    --neon-cyan: #00ffff;
+    --neon-yellow: #ffff00;
+    --neon-orange: #ff6600;
+    --dark-bg: #050510;
+    --dark2: #0a0a1a;
+    --pixel-border: 3px solid;
+    --glitch-color: #ff0090;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; }
+
+  body {
+    background: var(--dark-bg);
+    font-family: 'Press Start 2P', monospace;
+    color: var(--neon-green);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='6' y='0' width='4' height='4' fill='%2339ff14'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%2339ff14'/%3E%3Crect x='2' y='6' width='4' height='4' fill='%2339ff14'/%3E%3Crect x='10' y='6' width='4' height='4' fill='%2339ff14'/%3E%3C/svg%3E"), auto;
+  }
+
+  /* ── SCANLINES ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 2px, rgba(0,0,0,.18) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; position: absolute; inset: 0; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+  .screen.active { display: flex; }
+
+  /* ════════════════════════ INTRO SCREEN ════════════════════════ */
+  #intro-screen { background: var(--dark-bg); overflow: hidden; }
+
+  /* classroom background tiles */
+  #intro-screen .bg-classroom {
+    position: absolute; inset: 0; overflow: hidden; z-index: 0;
+  }
+  .bg-row { display: flex; }
+  .bg-tile { width: 48px; height: 48px; flex-shrink: 0; }
+
+  .intro-content { position: relative; z-index: 1; text-align: center; max-width: 680px; }
+
+  .game-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 3.5vw, 26px);
+    color: var(--neon-yellow);
+    text-shadow: 3px 3px 0 var(--neon-pink), -2px -2px 0 var(--neon-cyan);
+    line-height: 1.6;
+    animation: titleGlitch 2.5s infinite;
+    margin-bottom: 10px;
+  }
+  .game-subtitle {
+    font-size: clamp(7px, 1.4vw, 10px);
+    color: var(--neon-pink);
+    text-shadow: 1px 1px 0 #000;
+    margin-bottom: 18px;
+  }
+
+  @keyframes titleGlitch {
+    0%,94%,100% { text-shadow: 3px 3px 0 var(--neon-pink), -2px -2px 0 var(--neon-cyan); transform: translate(0); }
+    95% { text-shadow: -4px 0 var(--neon-pink), 4px 0 var(--neon-cyan); transform: translate(3px,-2px); }
+    97% { text-shadow: 4px 0 var(--neon-green), -4px 0 var(--neon-orange); transform: translate(-3px,2px); }
+  }
+
+  /* toilet army pixel art */
+  .toilet-army { display: flex; justify-content: center; gap: 6px; margin: 12px 0; flex-wrap: wrap; }
+  .toilet-sprite { display: inline-block; animation: bounce 0.8s infinite alternate; }
+  .toilet-sprite:nth-child(2) { animation-delay: .2s; }
+  .toilet-sprite:nth-child(3) { animation-delay: .4s; }
+  .toilet-sprite:nth-child(4) { animation-delay: .6s; }
+
+  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+  .lore-box {
+    border: 3px solid var(--neon-pink);
+    background: rgba(255,0,144,.08);
+    padding: 12px 16px;
+    font-family: 'VT323', monospace;
+    font-size: clamp(14px, 2.5vw, 20px);
+    color: var(--neon-cyan);
+    line-height: 1.5;
+    margin: 12px 0;
+    text-shadow: 0 0 8px var(--neon-cyan);
+    max-width: 600px;
+  }
+  .lore-box span { color: var(--neon-yellow); }
+
+  .btn-play {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(12px, 2vw, 18px);
+    color: var(--dark-bg);
+    background: var(--neon-green);
+    border: none;
+    padding: 14px 32px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #007800, 8px 8px 0 #003d00;
+    transition: transform .1s, box-shadow .1s;
+    margin-top: 14px;
+    animation: pulse 1.5s infinite;
+  }
+  .btn-play:hover { transform: translate(2px,2px); box-shadow: 2px 2px 0 #007800; }
+  .btn-play:active { transform: translate(4px,4px); box-shadow: none; }
+  @keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
+
+  /* ════════════════════════ GAME SCREEN ════════════════════════ */
+  #game-screen { background: var(--dark2); flex-direction: column; gap: 0; justify-content: flex-start; padding: 0; }
+
+  /* HUD */
+  .hud {
+    width: 100%; background: #000;
+    border-bottom: 3px solid var(--neon-green);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; flex-shrink: 0;
+    flex-wrap: wrap; gap: 6px;
+  }
+  .hud-section { display: flex; align-items: center; gap: 8px; }
+  .hud-label { font-size: 7px; color: #888; }
+  .hud-val { font-size: 10px; color: var(--neon-yellow); }
+  .lives-display { display: flex; gap: 4px; }
+  .life-icon { font-size: 14px; filter: drop-shadow(0 0 4px red); }
+  .life-icon.lost { filter: grayscale(1) opacity(.3); }
+
+  .xp-bar-wrap { flex: 1; min-width: 80px; max-width: 200px; }
+  .xp-bar-bg { height: 10px; background: #111; border: 2px solid var(--neon-cyan); }
+  .xp-bar-fill { height: 100%; background: var(--neon-cyan); transition: width .4s; box-shadow: 0 0 6px var(--neon-cyan); }
+
+  /* narrator */
+  .narrator-box {
+    width: 100%;
+    background: #000;
+    border-bottom: 2px solid var(--neon-pink);
+    padding: 5px 14px;
+    font-family: 'VT323', monospace;
+    font-size: clamp(13px, 2.5vw, 18px);
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px var(--neon-pink);
+    min-height: 28px;
+    flex-shrink: 0;
+  }
+
+  /* question area */
+  .question-area {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 16px; gap: 14px; overflow-y: auto;
+  }
+
+  .category-tag {
+    font-size: 7px; color: var(--neon-orange);
+    border: 2px solid var(--neon-orange);
+    padding: 3px 8px; text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .question-text {
+    font-size: clamp(9px, 2vw, 13px);
+    color: #fff;
+    text-align: center;
+    max-width: 640px;
+    line-height: 1.8;
+    text-shadow: 0 0 10px var(--neon-green);
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%; max-width: 620px;
+  }
+
+  .opt-btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(7px, 1.5vw, 10px);
+    color: var(--neon-cyan);
+    background: #050520;
+    border: 3px solid var(--neon-cyan);
+    padding: 12px 10px;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.6;
+    transition: background .15s, transform .1s;
+    word-break: break-word;
+  }
+  .opt-btn:hover:not(:disabled) { background: rgba(0,255,255,.15); transform: scale(1.02); }
+  .opt-btn.correct { background: rgba(57,255,20,.25) !important; border-color: var(--neon-green) !important; color: var(--neon-green) !important; }
+  .opt-btn.wrong { background: rgba(255,0,0,.25) !important; border-color: #ff0000 !important; color: #ff4444 !important; }
+  .opt-btn:disabled { cursor: default; }
+
+  /* boss bar */
+  .boss-bar-wrap {
+    width: 100%; display: none;
+    background: #000; border-bottom: 2px solid #ff0000;
+    padding: 4px 14px;
+  }
+  .boss-bar-wrap.active { display: block; }
+  .boss-label { font-size: 7px; color: #ff0000; margin-bottom: 3px; }
+  .boss-bar-bg { height: 12px; background: #200000; border: 2px solid #ff0000; }
+  .boss-bar-fill { height: 100%; background: #ff0000; transition: width .3s; box-shadow: 0 0 8px #ff0000; }
+
+  /* timer */
+  .timer-display {
+    font-size: clamp(20px, 5vw, 36px);
+    color: var(--neon-yellow);
+    text-shadow: 0 0 12px var(--neon-yellow);
+    display: none;
+  }
+  .timer-display.active { display: block; }
+  .timer-display.danger { color: #ff0000; animation: timerPanic .3s infinite alternate; }
+  @keyframes timerPanic { from { transform: scale(1); } to { transform: scale(1.2); } }
+
+  /* ════════════════════════ GAMEOVER / WIN ════════════════════════ */
+  #gameover-screen, #win-screen { background: rgba(0,0,0,.92); }
+  .end-title {
+    font-size: clamp(18px, 5vw, 36px);
+    animation: titleGlitch 1s infinite;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .end-score { font-size: clamp(10px, 2.5vw, 16px); margin-bottom: 24px; color: var(--neon-cyan); }
+  .btn-restart {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(9px, 1.8vw, 13px);
+    color: #000; background: var(--neon-pink);
+    border: none; padding: 12px 24px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #880044;
+  }
+  .btn-restart:hover { filter: brightness(1.2); }
+
+  /* ════════════════════════ PIXEL ART SPRITES (SVG inline) ════════════════════════ */
+  /* Toilet SVG drawn purely with CSS boxes */
+  .pixel-toilet {
+    width: 40px; height: 52px;
+    display: grid; grid-template-columns: repeat(8, 5px); grid-template-rows: repeat(10, 5px);
+    gap: 0;
+  }
+
+  /* ── EFFECTS ── */
+  .screen-flash {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 9998;
+    opacity: 0;
+    transition: opacity .1s;
+  }
+  .screen-flash.red { background: rgba(255,0,0,.4); }
+  .screen-flash.green { background: rgba(57,255,20,.25); }
+  .screen-flash.show { opacity: 1; }
+
+  .floating-text {
+    position: fixed;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 9997;
+    animation: floatUp 1.2s forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+  }
+
+  .glitch-overlay {
+    position: fixed; inset: 0; z-index: 9996;
+    pointer-events: none; opacity: 0;
+    background: repeating-linear-gradient(
+      90deg, rgba(255,0,144,.06) 0px, transparent 2px, transparent 20px, rgba(0,255,255,.06) 20px, transparent 22px
+    );
+  }
+  .glitch-overlay.active { opacity: 1; animation: glitchAnim .4s steps(1) forwards; }
+  @keyframes glitchAnim {
+    0%   { clip-path: polygon(0 15%, 100% 15%, 100% 20%, 0 20%); transform: translateX(-6px); }
+    25%  { clip-path: polygon(0 50%, 100% 50%, 100% 55%, 0 55%); transform: translateX(6px); }
+    50%  { clip-path: polygon(0 75%, 100% 75%, 100% 80%, 0 80%); transform: translateX(-4px); }
+    75%  { clip-path: none; transform: none; }
+    100% { opacity: 0; }
+  }
+
+  /* boss entrance */
+  .boss-popup {
+    position: fixed; inset: 0; z-index: 9990;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.85); flex-direction: column; gap: 12px;
+    text-align: center;
+  }
+  .boss-popup.hidden { display: none; }
+  .boss-title { font-size: clamp(16px, 4vw, 30px); color: #ff0000; animation: titleGlitch .5s infinite; }
+  .boss-sub { font-family: 'VT323', monospace; font-size: 22px; color: var(--neon-yellow); }
+
+  /* progress indicator */
+  .wave-indicator { font-size: 8px; color: #666; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: var(--neon-green); }
+
+  @media (max-width: 480px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .hud { padding: 5px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ EFFECTS ══════════════ -->
+<div class="screen-flash red" id="flashRed"></div>
+<div class="screen-flash green" id="flashGreen"></div>
+<div class="glitch-overlay" id="glitchOverlay"></div>
+
+<!-- ══════════════ INTRO SCREEN ══════════════ -->
+<div class="screen active" id="intro-screen">
+  <canvas id="bgCanvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;"></canvas>
+  <div class="intro-content">
+    <div class="game-title">💀 SKIBIDI TOILET 💀<br>LA GUERRA DEL ESPAÑOL</div>
+    <div class="game-subtitle">— episodio I: el brainrot se apodera del idioma —</div>
+
+    <div class="toilet-army">
+      <!-- Toilet sprites via SVG -->
+      <svg class="toilet-sprite" width="44" height="56" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="0" width="5" height="1" fill="#00ffff"/>
+        <rect x="2" y="1" width="7" height="4" fill="#00cccc"/>
+        <rect x="1" y="2" width="1" height="2" fill="#00ffff"/>
+        <rect x="9" y="2" width="1" height="2" fill="#00ffff"/>
+        <!-- eyes -->
+        <rect x="3" y="2" width="2" height="2" fill="#fff"/>
+        <rect x="6" y="2" width="2" height="2" fill="#fff"/>
+        <rect x="4" y="3" width="1" height="1" fill="#ff0000"/>
+        <rect x="7" y="3" width="1" height="1" fill="#ff0000"/>
+        <!-- mouth -->
+        <rect x="3" y="4" width="5" height="1" fill="#ff0090"/>
+        <!-- body (tank) -->
+        <rect x="1" y="5" width="9" height="6" fill="#aaeeff"/>
+        <rect x="0" y="7" width="11" height="2" fill="#88ccee"/>
+        <!-- lid -->
+        <rect x="2" y="11" width="7" height="2" fill="#77bbdd"/>
+        <rect x="1" y="13" width="9" height="1" fill="#55aacc"/>
+      </svg>
+      <svg class="toilet-sprite" width="44" height="56" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="0" width="5" height="1" fill="#ff0090"/>
+        <rect x="2" y="1" width="7" height="4" fill="#cc0070"/>
+        <rect x="1" y="2" width="1" height="2" fill="#ff0090"/>
+        <rect x="9" y="2" width="1" height="2" fill="#ff0090"/>
+        <rect x="3" y="2" width="2" height="2" fill="#fff"/>
+        <rect x="6" y="2" width="2" height="2" fill="#fff"/>
+        <rect x="4" y="3" width="1" height="1" fill="#ffff00"/>
+        <rect x="7" y="3" width="1" height="1" fill="#ffff00"/>
+        <rect x="3" y="4" width="5" height="1" fill="#00ffff"/>
+        <rect x="1" y="5" width="9" height="6" fill="#ffaabb"/>
+        <rect x="0" y="7" width="11" height="2" fill="#ee88aa"/>
+        <rect x="2" y="11" width="7" height="2" fill="#dd77aa"/>
+        <rect x="1" y="13" width="9" height="1" fill="#cc5599"/>
+      </svg>
+      <svg class="toilet-sprite" width="44" height="56" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="0" width="5" height="1" fill="#39ff14"/>
+        <rect x="2" y="1" width="7" height="4" fill="#27cc0e"/>
+        <rect x="1" y="2" width="1" height="2" fill="#39ff14"/>
+        <rect x="9" y="2" width="1" height="2" fill="#39ff14"/>
+        <rect x="3" y="2" width="2" height="2" fill="#fff"/>
+        <rect x="6" y="2" width="2" height="2" fill="#fff"/>
+        <rect x="4" y="3" width="1" height="1" fill="#ff6600"/>
+        <rect x="7" y="3" width="1" height="1" fill="#ff6600"/>
+        <rect x="3" y="4" width="5" height="1" fill="#ff0090"/>
+        <rect x="1" y="5" width="9" height="6" fill="#aaffaa"/>
+        <rect x="0" y="7" width="11" height="2" fill="#88ee88"/>
+        <rect x="2" y="11" width="7" height="2" fill="#77dd77"/>
+        <rect x="1" y="13" width="9" height="1" fill="#55cc55"/>
+      </svg>
+      <svg class="toilet-sprite" width="60" height="72" viewBox="0 0 15 18" xmlns="http://www.w3.org/2000/svg">
+        <!-- TITAN -->
+        <rect x="4" y="0" width="7" height="1" fill="#ffff00"/>
+        <rect x="2" y="1" width="11" height="5" fill="#ccaa00"/>
+        <rect x="1" y="2" width="2" height="4" fill="#ffff00"/>
+        <rect x="12" y="2" width="2" height="4" fill="#ffff00"/>
+        <rect x="3" y="2" width="3" height="3" fill="#fff"/>
+        <rect x="9" y="2" width="3" height="3" fill="#fff"/>
+        <rect x="4" y="3" width="2" height="2" fill="#ff0000"/>
+        <rect x="10" y="3" width="2" height="2" fill="#ff0000"/>
+        <rect x="4" y="5" width="7" height="1" fill="#ff6600"/>
+        <rect x="5" y="6" width="5" height="1" fill="#ff6600"/>
+        <rect x="1" y="7" width="13" height="8" fill="#eecc66"/>
+        <rect x="0" y="9" width="15" height="3" fill="#ddbb55"/>
+        <rect x="3" y="15" width="9" height="2" fill="#ccaa44"/>
+        <rect x="2" y="17" width="11" height="1" fill="#bb9933"/>
+        <!-- crown spikes -->
+        <rect x="2" y="0" width="1" height="2" fill="#ffff00"/>
+        <rect x="7" y="0" width="1" height="3" fill="#ffff00"/>
+        <rect x="12" y="0" width="1" height="2" fill="#ffff00"/>
+      </svg>
+    </div>
+
+    <div class="lore-box">
+      ⚠️ ALERTA MÁXIMA ⚠️<br>
+      Los <span>Skibidi Toilets</span> destruyeron el idioma español…<br>
+      Arréglalo antes de que toda la humanidad hable puro <span>BRAINROT</span>.<br>
+      Tu gramática es la última esperanza. No nos falles. Gyatt.
+    </div>
+
+    <button class="btn-play" onclick="startGame()">▶ JUGAR ◀</button>
+    <div style="font-family:'VT323',monospace;font-size:14px;color:#444;margin-top:10px;">
+      [wasd/tap para jugar · sin librerías · 100% brainrot educativo]
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME SCREEN ══════════════ -->
+<div class="screen" id="game-screen">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-section">
+      <div>
+        <div class="hud-label">PUNTOS</div>
+        <div class="hud-val" id="scoreDisplay">0</div>
+      </div>
+    </div>
+    <div class="hud-section" style="flex-direction:column;align-items:center;gap:3px;">
+      <div class="hud-label" style="text-align:center;">NIVEL DE ESPAÑOL</div>
+      <div class="xp-bar-wrap">
+        <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
+      </div>
+      <div class="wave-indicator" id="waveIndicator">OLEADA 1</div>
+    </div>
+    <div class="hud-section">
+      <div>
+        <div class="hud-label">VIDAS</div>
+        <div class="lives-display" id="livesDisplay"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Boss HP bar -->
+  <div class="boss-bar-wrap" id="bossBarWrap">
+    <div class="boss-label">👑 TITAN SKIBIDI HP</div>
+    <div class="boss-bar-bg"><div class="boss-bar-fill" id="bossBar" style="width:100%"></div></div>
+  </div>
+
+  <!-- Narrator -->
+  <div class="narrator-box" id="narratorBox">📺 cargando transmisión skibidi...</div>
+
+  <!-- Question Area -->
+  <div class="question-area">
+    <div class="category-tag" id="categoryTag">categoría</div>
+    <div class="timer-display" id="timerDisplay">⏱ 10</div>
+    <div class="question-text" id="questionText">cargando pregunta...</div>
+    <div class="options-grid" id="optionsGrid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME OVER SCREEN ══════════════ -->
+<div class="screen" id="gameover-screen">
+  <div class="end-title" style="color:#ff0000;">💀 GAME OVER 💀</div>
+  <svg width="80" height="100" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg" style="margin:10px auto;display:block;">
+    <rect x="3" y="0" width="5" height="1" fill="#ff0000"/>
+    <rect x="2" y="1" width="7" height="4" fill="#880000"/>
+    <rect x="3" y="2" width="2" height="2" fill="#fff"/>
+    <rect x="6" y="2" width="2" height="2" fill="#fff"/>
+    <rect x="4" y="3" width="1" height="1" fill="#000"/>
+    <rect x="7" y="3" width="1" height="1" fill="#000"/>
+    <rect x="4" y="4" width="3" height="1" fill="#ff0000"/>
+    <rect x="1" y="5" width="9" height="6" fill="#550000"/>
+    <rect x="2" y="11" width="7" height="2" fill="#440000"/>
+    <rect x="1" y="13" width="9" height="1" fill="#330000"/>
+  </svg>
+  <div class="end-score" id="gameoverScore">Puntuación: 0</div>
+  <div style="font-family:'VT323',monospace;font-size:18px;color:#ff6666;margin-bottom:20px;text-align:center;">
+    el brainrot te venció...<br>el skibidi toilet te comió el cerebro.<br>¡vuelve a intentarlo, sigma!
+  </div>
+  <button class="btn-restart" onclick="restartGame()">↩ REINTENTAR</button>
+</div>
+
+<!-- ══════════════ WIN SCREEN ══════════════ -->
+<div class="screen" id="win-screen">
+  <div class="end-title" style="color:var(--neon-yellow);">🏆 VICTORIA 🏆</div>
+  <svg width="80" height="100" viewBox="0 0 11 14" xmlns="http://www.w3.org/2000/svg" style="margin:10px auto;display:block;filter:drop-shadow(0 0 8px gold);">
+    <rect x="3" y="0" width="5" height="1" fill="#ffff00"/>
+    <rect x="2" y="1" width="7" height="4" fill="#ccaa00"/>
+    <rect x="3" y="2" width="2" height="2" fill="#fff"/>
+    <rect x="6" y="2" width="2" height="2" fill="#fff"/>
+    <rect x="4" y="3" width="1" height="1" fill="#39ff14"/>
+    <rect x="7" y="3" width="1" height="1" fill="#39ff14"/>
+    <rect x="3" y="4" width="1" height="1" fill="#ffff00"/>
+    <rect x="7" y="4" width="1" height="1" fill="#ffff00"/>
+    <rect x="4" y="4" width="3" height="1" fill="#fff"/>
+    <rect x="1" y="5" width="9" height="6" fill="#eecc66"/>
+    <rect x="2" y="11" width="7" height="2" fill="#ddbb55"/>
+    <rect x="1" y="13" width="9" height="1" fill="#ccaa44"/>
+  </svg>
+  <div class="end-score" id="winScore">Puntuación: 0</div>
+  <div style="font-family:'VT323',monospace;font-size:22px;color:var(--neon-green);margin-bottom:20px;text-align:center;">
+    ¡SALVASTE EL ESPAÑOL!<br>el titan skibidi fue derrotado.<br>eres el sigma gramático definitivo. 🐺💪<br>el brainrot ha sido eliminado. gyatt.
+  </div>
+  <button class="btn-restart" style="background:var(--neon-green);" onclick="restartGame()">▶ JUGAR DE NUEVO</button>
+</div>
+
+<!-- ══════════════ BOSS POPUP ══════════════ -->
+<div class="boss-popup hidden" id="bossPopup">
+  <svg width="120" height="150" viewBox="0 0 15 18" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 16px red);">
+    <rect x="4" y="0" width="7" height="1" fill="#ffff00"/>
+    <rect x="2" y="1" width="11" height="5" fill="#ccaa00"/>
+    <rect x="1" y="2" width="2" height="4" fill="#ffff00"/>
+    <rect x="12" y="2" width="2" height="4" fill="#ffff00"/>
+    <rect x="3" y="2" width="3" height="3" fill="#fff"/>
+    <rect x="9" y="2" width="3" height="3" fill="#fff"/>
+    <rect x="4" y="3" width="2" height="2" fill="#ff0000"/>
+    <rect x="10" y="3" width="2" height="2" fill="#ff0000"/>
+    <rect x="4" y="5" width="7" height="1" fill="#ff6600"/>
+    <rect x="5" y="6" width="5" height="1" fill="#ff6600"/>
+    <rect x="1" y="7" width="13" height="8" fill="#eecc66"/>
+    <rect x="0" y="9" width="15" height="3" fill="#ddbb55"/>
+    <rect x="3" y="15" width="9" height="2" fill="#ccaa44"/>
+    <rect x="2" y="17" width="11" height="1" fill="#bb9933"/>
+    <rect x="2" y="0" width="1" height="2" fill="#ffff00"/>
+    <rect x="7" y="0" width="1" height="3" fill="#ffff00"/>
+    <rect x="12" y="0" width="1" height="2" fill="#ffff00"/>
+  </svg>
+  <div class="boss-title">⚠️ TITAN SKIBIDI TOILET ⚠️</div>
+  <div class="boss-sub">¡EL JEFE FINAL HA APARECIDO!<br>Preguntas ultra difíciles · Tiempo limitado</div>
+  <div style="font-family:'VT323',monospace;font-size:18px;color:#aaa;margin-top:8px;">prepárate para el brainrot máximo...</div>
+</div>
+
+<!-- ══════════════ AUDIO (Web Audio API) ══════════════ -->
+<script>
+// ══════════════════════════════════════════════════════
+//  AUDIO ENGINE
+// ══════════════════════════════════════════════════════
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playTone(freq, type='square', duration=0.12, vol=0.15, delay=0) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+    gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+    osc.start(ctx.currentTime + delay);
+    osc.stop(ctx.currentTime + delay + duration + 0.01);
+  } catch(e){}
+}
+function sfxCorrect() {
+  playTone(523, 'square', .1, .15);
+  playTone(659, 'square', .1, .15, .1);
+  playTone(784, 'square', .15, .15, .2);
+}
+function sfxWrong() {
+  playTone(200, 'sawtooth', .08, .2);
+  playTone(150, 'sawtooth', .12, .2, .08);
+  playTone(100, 'sawtooth', .2, .2, .18);
+}
+function sfxBoss() {
+  [80,100,120,80,60].forEach((f,i) => playTone(f,'sawtooth',.15,.3,i*.12));
+}
+function sfxVictory() {
+  const melody = [523,659,784,1046];
+  melody.forEach((f,i) => playTone(f,'square',.2,.15,i*.18));
+}
+
+// background phonk loop
+let bgPlaying = false;
+function startBgMusic() {
+  if (bgPlaying) return; bgPlaying = true;
+  const ctx = getAudio();
+  const phonkPattern = [110,0,110,0,138,0,110,0,98,0,110,0,138,164];
+  let step = 0;
+  function tick() {
+    if (!bgPlaying) return;
+    const f = phonkPattern[step % phonkPattern.length];
+    if (f) playTone(f, 'sawtooth', 0.13, 0.07);
+    step++;
+    setTimeout(tick, 200);
+  }
+  tick();
+}
+
+// ══════════════════════════════════════════════════════
+//  BACKGROUND CANVAS (classroom destroyed)
+// ══════════════════════════════════════════════════════
+function drawBg() {
+  const c = document.getElementById('bgCanvas');
+  const W = c.width = window.innerWidth;
+  const H = c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+
+  // sky / room dark
+  ctx.fillStyle = '#050510';
+  ctx.fillRect(0,0,W,H);
+
+  // floor
+  ctx.fillStyle = '#1a0a00';
+  ctx.fillRect(0, H*0.7, W, H*0.3);
+
+  // pixel tiles on floor
+  for (let x = 0; x < W; x+=32) {
+    ctx.fillStyle = x%64===0 ? '#2a1000' : '#1f0c00';
+    ctx.fillRect(x, H*0.7, 32, 16);
+  }
+
+  // blackboard
+  ctx.fillStyle = '#0a2a0a';
+  ctx.fillRect(W*.1, H*.1, W*.8, H*.35);
+  ctx.strokeStyle = '#39ff14';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(W*.1, H*.1, W*.8, H*.35);
+
+  // glitchy text on board
+  ctx.fillStyle = '#39ff14';
+  ctx.font = `bold ${Math.max(10,W/50)}px "Press Start 2P", monospace`;
+  ctx.globalAlpha = 0.4;
+  ctx.fillText('YO IR BAÑO AYER', W*.14, H*.25);
+  ctx.fillStyle = '#ff0090';
+  ctx.fillText('SKIBIDI GRAMÁTICA', W*.14, H*.35);
+  ctx.globalAlpha = 1;
+
+  // cracks
+  ctx.strokeStyle = '#ff0090';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.5;
+  [[W*.3,H*.05,W*.5,H*.6],[W*.7,0,W*.6,H*.8],[W*.1,H*.3,W*.4,H*.7]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+
+  // pixel toilets in background
+  const positions = [[W*.05,H*.6],[W*.85,H*.55],[W*.5,H*.65],[W*.2,H*.72],[W*.75,H*.68]];
+  positions.forEach(([x,y],i) => {
+    drawPixelToilet(ctx, x, y, 16, i%3===0?'#ff0090': i%3===1?'#39ff14':'#00ffff');
+  });
+}
+
+function drawPixelToilet(ctx, x, y, sz, col) {
+  const p = [[3,0,5,1],[2,1,7,4],[1,2,1,2],[9,2,1,2],[3,2,2,2],[6,2,2,2],[1,5,9,6],[0,7,11,2],[2,11,7,2],[1,13,9,1]];
+  ctx.fillStyle = col;
+  p.forEach(([gx,gy,gw,gh]) => {
+    ctx.fillRect(x + gx*(sz/11), y + gy*(sz/14), gw*(sz/11), gh*(sz/14));
+  });
+}
+
+window.addEventListener('resize', drawBg);
+drawBg();
+
+// ══════════════════════════════════════════════════════
+//  QUESTIONS DATABASE (35+)
+// ══════════════════════════════════════════════════════
+const questions = [
+  // ADVERBIOS
+  { cat:'Adverbio', q:'¿Qué tipo de palabra es "rápidamente"?', opts:['Sustantivo','Verbo','Adverbio','Adjetivo'], ans:2 },
+  { cat:'Adverbio', q:'¿Cuál de estas palabras es un adverbio?', opts:['correr','bonito','siempre','silla'], ans:2 },
+  { cat:'Adverbio', q:'¿Qué tipo de palabra es "aquí"?', opts:['Adjetivo','Adverbio de lugar','Verbo','Sustantivo'], ans:1 },
+  { cat:'Adverbio', q:'Identifica el adverbio: "Ella canta MUY bien"', opts:['Ella','canta','muy','bien'], ans:2 },
+  // VERBOS
+  { cat:'Verbo', q:'¿Cuál es el VERBO en: "el skibidi toilet BAILA en el baño"?', opts:['skibidi','toilet','baila','baño'], ans:2 },
+  { cat:'Verbo', q:'¿Cuál de estas palabras es un VERBO?', opts:['rápido','correr','mesa','azul'], ans:1 },
+  { cat:'Verbo', q:'¿En qué tiempo está el verbo "comí"?', opts:['Presente','Futuro','Pasado','Condicional'], ans:2 },
+  { cat:'Verbo', q:'Elige el verbo conjugado correctamente:\n"Ayer yo __ al mercado"', opts:['va','voy','fui','iré'], ans:2 },
+  { cat:'Verbo', q:'¿Cuál es el infinitivo de "jugamos"?', opts:['jugo','jugar','jugado','jugando'], ans:1 },
+  // SUSTANTIVOS
+  { cat:'Sustantivo', q:'¿Qué tipo de palabra es "skibidi toilet"?', opts:['Verbo','Adjetivo','Sustantivo','Adverbio'], ans:2 },
+  { cat:'Sustantivo', q:'¿Cuál de estas palabras es un SUSTANTIVO?', opts:['correr','feliz','ciudad','siempre'], ans:2 },
+  { cat:'Sustantivo', q:'¿Qué tipo de sustantivo es "México"?', opts:['Común','Propio','Abstracto','Colectivo'], ans:1 },
+  { cat:'Sustantivo', q:'¿Cuál es el sustantivo en: "El perro ladra fuerte"?', opts:['El','perro','ladra','fuerte'], ans:1 },
+  // ADJETIVOS
+  { cat:'Adjetivo', q:'¿Qué tipo de palabra es "enorme" en: "el titan skibidi enorme"?', opts:['Sustantivo','Verbo','Adjetivo','Adverbio'], ans:2 },
+  { cat:'Adjetivo', q:'¿Cuál de estas palabras es un ADJETIVO?', opts:['hablar','rápidamente','hermoso','ciudad'], ans:2 },
+  { cat:'Adjetivo', q:'Elige el adjetivo correcto para concordar:\n"Las casas son ___"', opts:['bonito','bonita','bonitos','bonitas'], ans:3 },
+  // SUJETO Y PREDICADO
+  { cat:'Sujeto', q:'¿Cuál es el SUJETO en:\n"El skibidi toilet destruyó la escuela"?', opts:['destruyó','la escuela','El skibidi toilet','skibidi'], ans:2 },
+  { cat:'Predicado', q:'¿Cuál es el PREDICADO en:\n"Los estudiantes estudian mucho"?', opts:['Los estudiantes','estudian mucho','Los','mucho'], ans:1 },
+  { cat:'Sujeto', q:'¿Qué oración tiene sujeto TÁCITO (implícito)?', opts:['Ella come pizza','Comemos juntos','El gato duerme','La lluvia cae'], ans:1 },
+  // ACENTOS / TILDES
+  { cat:'Acentuación', q:'¿Cuál de estas palabras lleva TILDE?', opts:['camion','avion','camión','autobus'], ans:2 },
+  { cat:'Acentuación', q:'¿Cuál es la diferencia entre "sí" y "si"?', opts:['"sí" es conjunción y "si" es afirmación','"sí" es afirmación y "si" es conjunción','Son idénticas','Ninguna lleva tilde'], ans:1 },
+  { cat:'Acentuación', q:'¿Cuántas sílabas tiene "murciélago"?', opts:['3','4','5','6'], ans:1 },
+  { cat:'Acentuación', q:'¿Cómo se escribe correctamente?', opts:['el árbol','el arbol','el árbol','El Árbol'], ans:0 },
+  { cat:'Acentuación', q:'Las palabras AGUDAS llevan tilde cuando terminan en…', opts:['cualquier consonante','n, s o vocal','solo vocal','solo consonante'], ans:1 },
+  // ORDEN DE ORACIONES
+  { cat:'Oración', q:'Ordena: "baño / ayer / fui / yo / al"', opts:['Ayer al baño yo fui','Yo fui al baño ayer','Fui yo ayer al baño','Al baño yo ayer fui'], ans:1 },
+  { cat:'Oración', q:'¿Cuál oración está CORRECTAMENTE escrita?', opts:['Comió él pizza ayer rápido','Él comió pizza ayer rápidamente','Pizza rápidamente comió él','Ayer él rápidamente comió'], ans:1 },
+  { cat:'Oración', q:'Corrige la oración brainrot:\n"yo ir baño ayer"', opts:['yo iba baño ayer','yo fui al baño ayer','yo fue baño ayer','yo fui baño ayer'], ans:1 },
+  { cat:'Oración', q:'¿Cuál es la oración COMPLETA y correcta?', opts:['Corre.','El niño rápido.','El niño corre rápido.','Rápido niño el.'], ans:2 },
+  // PRONOMBRES
+  { cat:'Pronombre', q:'¿Qué tipo de palabra es "ellos" en una oración?', opts:['Sustantivo','Pronombre personal','Adjetivo','Verbo'], ans:1 },
+  { cat:'Pronombre', q:'¿Cuál es el pronombre correcto?\n"___ y yo vamos al mercado"', opts:['Él','Le','Lo','La'], ans:0 },
+  // SIGNOS DE PUNTUACIÓN
+  { cat:'Puntuación', q:'¿Qué signo va al INICIO de una pregunta en español?', opts:['?','¿','!','¡'], ans:1 },
+  { cat:'Puntuación', q:'¿Cuándo se usa la COMA en una lista?', opts:['Nunca','Para separar elementos','Solo con verbos','Al inicio'], ans:1 },
+  // BOSS QUESTIONS (más difíciles, se marcan con boss:true)
+  { cat:'BOSS ☠️', q:'¿Cuál de estas oraciones usa el SUBJUNTIVO correctamente?', opts:['Quiero que vengas','Quiero que vienes','Quiero que vendrás','Quiero que venir'], ans:0, boss:true },
+  { cat:'BOSS ☠️', q:'Identifica el COMPLEMENTO DIRECTO:\n"María le regaló flores a su mamá"', opts:['María','le regaló','flores','a su mamá'], ans:2, boss:true },
+  { cat:'BOSS ☠️', q:'¿Cuál es la forma correcta del verbo HABER?\n"Ayer ___ muchos skibidi toilets"', opts:['habían','habían','hubo','han habido'], ans:2, boss:true },
+  { cat:'BOSS ☠️', q:'¿Qué tipo de oración es:\n"Aunque llueva, saldré"?', opts:['Coordinada','Subordinada adverbial concesiva','Yuxtapuesta','Principal independiente'], ans:1, boss:true },
+];
+
+const narratorLines = {
+  correct: [
+    '✅ ¡CORRECTO! el brainrot retrocede... por ahora',
+    '🔥 BASADO. tu gramática es sigma',
+    '💀 el skibidi toilet llora en píxeles',
+    '📚 ¡RIZZLER GRAMATICAL ACTIVADO!',
+    '⚡ combo de conocimiento desbloqueado',
+    '🧠 tu nivel de español aumentó. gyatt.',
+    '🏆 sigma gramático level up!',
+  ],
+  wrong: [
+    '❌ el brainrot AUMENTA... oof',
+    '💀 te comió el skibidi toilet cerebro',
+    '📉 nivel de español: en el suelo',
+    '😭 no cap, eso estuvo mal',
+    '🚽 el toilet se ríe de tu gramática',
+    '⚠️ BRAINROT DETECTADO en tu respuesta',
+    '🔴 el titan skibidi gana terreno...',
+  ],
+  boss: [
+    '👑 EL TITAN SKIBIDI HA LLEGADO. RIP BOZO',
+    '☠️ modo final desbloqueado. prepárate',
+    '🚨 ALERTA: boss fight iniciado. no cap.',
+  ],
+  intro: [
+    '📺 transmisión desde las ruinas del idioma español...',
+    '⚡ el skibidi toilet dice: "yo ir escuela siempre"',
+    '🚽 el toilet habla brainrot... ¡corrígelo!',
+    '💀 tu gramática vs el ejército skibidi. fight!',
+  ]
+};
+
+// ══════════════════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════════════════
+let state = {};
+const BOSS_EVERY = 5; // boss every N correct answers
+const WIN_SCORE = 300;
+const MAX_LIVES = 3;
+const BOSS_TIME = 12;
+const NORMAL_TIME = 0; // 0 = no timer on normal questions
+
+function initState() {
+  state = {
+    score: 0,
+    lives: MAX_LIVES,
+    wave: 1,
+    xp: 0,
+    correctCount: 0,
+    answered: false,
+    isBoss: false,
+    bossHp: 100,
+    timerInterval: null,
+    timeLeft: 0,
+    usedQuestions: new Set(),
+  };
+}
+
+// ══════════════════════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  startBgMusic();
+  initState();
+  showScreen('game-screen');
+  updateHUD();
+  nextQuestion();
+}
+
+function restartGame() {
+  clearInterval(state.timerInterval);
+  showScreen('intro-screen');
+}
+
+// ══════════════════════════════════════════════════════
+//  HUD
+// ══════════════════════════════════════════════════════
+function updateHUD() {
+  document.getElementById('scoreDisplay').textContent = state.score;
+  document.getElementById('waveIndicator').textContent = `OLEADA ${state.wave}`;
+
+  // xp bar (progress toward win)
+  const pct = Math.min(100, (state.score / WIN_SCORE) * 100);
+  document.getElementById('xpBar').style.width = pct + '%';
+
+  // lives
+  const ld = document.getElementById('livesDisplay');
+  ld.innerHTML = '';
+  for (let i = 0; i < MAX_LIVES; i++) {
+    const ic = document.createElement('span');
+    ic.className = 'life-icon' + (i >= state.lives ? ' lost' : '');
+    ic.textContent = '🚽';
+    ld.appendChild(ic);
+  }
+}
+
+function setNarrator(text) {
+  document.getElementById('narratorBox').textContent = text;
+}
+
+function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ══════════════════════════════════════════════════════
+//  QUESTION LOGIC
+// ══════════════════════════════════════════════════════
+function getRandomQuestion(bossFight) {
+  const pool = bossFight
+    ? questions.filter(q => q.boss)
+    : questions.filter(q => !q.boss);
+
+  // avoid repeats
+  const available = pool.filter((_,i) => !state.usedQuestions.has((bossFight?'b':'n')+i));
+  if (available.length === 0) { state.usedQuestions.clear(); return getRandomQuestion(bossFight); }
+
+  const picked = available[Math.floor(Math.random() * available.length)];
+  const globalIdx = (bossFight?'b':'n') + pool.indexOf(picked);
+  state.usedQuestions.add(globalIdx);
+  return picked;
+}
+
+function nextQuestion() {
+  clearInterval(state.timerInterval);
+  state.answered = false;
+
+  // check win
+  if (state.score >= WIN_SCORE) { triggerWin(); return; }
+
+  // check boss trigger
+  const shouldBoss = state.correctCount > 0 && state.correctCount % BOSS_EVERY === 0 && !state.isBoss;
+  if (shouldBoss) {
+    triggerBossEntrance();
+    return;
+  }
+
+  const q = getRandomQuestion(state.isBoss);
+  renderQuestion(q);
+
+  // timer for boss
+  if (state.isBoss) {
+    startTimer(BOSS_TIME);
+  }
+}
+
+function renderQuestion(q) {
+  document.getElementById('categoryTag').textContent = q.cat;
+  document.getElementById('questionText').textContent = q.q;
+  setNarrator(randFrom(narratorLines.intro));
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = `${['A','B','C','D'][i]}) ${opt}`;
+    btn.onclick = () => handleAnswer(i, q.ans, btn, grid, q);
+    grid.appendChild(btn);
+  });
+}
+
+function handleAnswer(chosen, correct, btn, grid, q) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+
+  // disable all buttons
+  grid.querySelectorAll('.opt-btn').forEach(b => { b.disabled = true; });
+  // show correct
+  grid.querySelectorAll('.opt-btn')[correct].classList.add('correct');
+
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    sfxCorrect();
+    triggerFlash('green');
+    const pts = state.isBoss ? 30 : 10 + (state.wave - 1) * 2;
+    state.score += pts;
+    state.correctCount++;
+    state.xp = Math.min(100, state.xp + 15);
+    if (state.isBoss) state.bossHp -= 34;
+    showFloatingText('+' + pts + ' pts! 🔥', '#39ff14');
+    setNarrator(randFrom(narratorLines.correct));
+    updateBossBar();
+    if (state.isBoss && state.bossHp <= 0) {
+      setTimeout(endBoss, 700);
+      return;
+    }
+  } else {
+    btn.classList.add('wrong');
+    sfxWrong();
+    triggerFlash('red');
+    triggerGlitch();
+    state.lives--;
+    showFloatingText('💀 FAIL! brainrot+1', '#ff0000');
+    setNarrator(randFrom(narratorLines.wrong));
+    updateHUD();
+    if (state.lives <= 0) { setTimeout(triggerGameOver, 900); return; }
+  }
+
+  updateHUD();
+  if (state.correctCount % 3 === 0 && state.correctCount > 0 && !state.isBoss) state.wave++;
+
+  setTimeout(nextQuestion, 1200);
+}
+
+// ══════════════════════════════════════════════════════
+//  BOSS FIGHT
+// ══════════════════════════════════════════════════════
+function triggerBossEntrance() {
+  sfxBoss();
+  triggerGlitch();
+  const popup = document.getElementById('bossPopup');
+  popup.classList.remove('hidden');
+  setNarrator(randFrom(narratorLines.boss));
+  document.getElementById('bossBarWrap').classList.add('active');
+  state.isBoss = true;
+  state.bossHp = 100;
+  updateBossBar();
+  setTimeout(() => {
+    popup.classList.add('hidden');
+    nextQuestion();
+  }, 2800);
+}
+
+function endBoss() {
+  state.isBoss = false;
+  state.bossHp = 100;
+  document.getElementById('bossBarWrap').classList.remove('active');
+  showFloatingText('🏆 BOSS DESTRUIDO!', '#ffff00');
+  state.score += 50;
+  updateHUD();
+  setTimeout(nextQuestion, 800);
+}
+
+function updateBossBar() {
+  if (!state.isBoss) return;
+  document.getElementById('bossBar').style.width = Math.max(0, state.bossHp) + '%';
+}
+
+// ══════════════════════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════════════════════
+function startTimer(seconds) {
+  const td = document.getElementById('timerDisplay');
+  td.classList.add('active');
+  state.timeLeft = seconds;
+  td.textContent = '⏱ ' + seconds;
+  td.classList.remove('danger');
+
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    td.textContent = '⏱ ' + state.timeLeft;
+    if (state.timeLeft <= 4) td.classList.add('danger');
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      td.classList.remove('active','danger');
+      // time out = wrong answer
+      if (!state.answered) {
+        state.answered = true;
+        sfxWrong();
+        triggerFlash('red');
+        triggerGlitch();
+        state.lives--;
+        showFloatingText('⏰ TIEMPO! -1 vida', '#ff6600');
+        setNarrator('⏰ SE TE ACABÓ EL TIEMPO. el titan skibidi ríe.');
+        updateHUD();
+        if (state.lives <= 0) { setTimeout(triggerGameOver, 900); return; }
+        setTimeout(nextQuestion, 1000);
+      }
+    }
+  }, 1000);
+}
+
+// ══════════════════════════════════════════════════════
+//  END STATES
+// ══════════════════════════════════════════════════════
+function triggerGameOver() {
+  clearInterval(state.timerInterval);
+  showScreen('gameover-screen');
+  document.getElementById('gameoverScore').textContent = `Puntuación final: ${state.score} pts`;
+  sfxWrong(); sfxWrong();
+}
+
+function triggerWin() {
+  clearInterval(state.timerInterval);
+  sfxVictory();
+  showScreen('win-screen');
+  document.getElementById('winScore').textContent = `Puntuación final: ${state.score} pts 🏆`;
+}
+
+// ══════════════════════════════════════════════════════
+//  VISUAL EFFECTS
+// ══════════════════════════════════════════════════════
+function triggerFlash(color) {
+  const el = document.getElementById(color === 'red' ? 'flashRed' : 'flashGreen');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 200);
+}
+
+function triggerGlitch() {
+  const el = document.getElementById('glitchOverlay');
+  el.classList.add('active');
+  setTimeout(() => el.classList.remove('active'), 450);
+}
+
+function showFloatingText(text, color) {
+  const el = document.createElement('div');
+  el.className = 'floating-text';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.left = (20 + Math.random() * 60) + '%';
+  el.style.top = (30 + Math.random() * 30) + '%';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+// unlock audio on first interaction
+document.addEventListener('click', () => { try { getAudio().resume(); } catch(e){} }, { once: true });
+
+// redraw bg on resize
+window.addEventListener('resize', drawBg);
+</script>
+</body>
+</html>

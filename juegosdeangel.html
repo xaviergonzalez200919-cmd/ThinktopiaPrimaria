@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historia de Formación Cívica y Ética</title>
+
+<style>
+
+body{
+  font-family: Arial, sans-serif;
+  margin:0;
+  padding:20px;
+  background: linear-gradient(135deg,#1565c0,#7b1fa2);
+  color:white;
+  text-align:center;
+}
+
+.contenedor{
+  max-width:900px;
+  margin:auto;
+  background:rgba(0,0,0,0.35);
+  padding:30px;
+  border-radius:20px;
+  box-shadow:0 0 20px black;
+}
+
+h1{
+  font-size:45px;
+  color:yellow;
+  text-shadow:3px 3px 5px black;
+}
+
+#contador{
+  font-size:24px;
+  margin-bottom:20px;
+}
+
+#historia{
+  font-size:28px;
+  line-height:1.6;
+  background:rgba(255,255,255,0.15);
+  padding:25px;
+  border-radius:15px;
+  margin-bottom:25px;
+}
+
+.opcion{
+  display:block;
+  width:85%;
+  margin:15px auto;
+  padding:18px;
+  font-size:22px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+.opcion:hover{
+  transform:scale(1.05);
+}
+
+.correcta{
+  background:green !important;
+  color:white;
+}
+
+.incorrecta{
+  background:red !important;
+  color:white;
+}
+
+#mensaje{
+  font-size:26px;
+  margin-top:20px;
+  color:yellow;
+}
+
+#puntos{
+  font-size:28px;
+  margin-top:25px;
+}
+
+#final{
+  margin-top:30px;
+  font-size:30px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<h1>📚 Formación Cívica y Ética 📚</h1>
+
+<div id="contador"></div>
+
+<div id="historia"></div>
+
+<div id="opciones"></div>
+
+<div id="mensaje"></div>
+
+<div id="puntos">
+⭐ Puntos: 0
+</div>
+
+<div id="final"></div>
+
+</div>
+
+<script>
+
+const situaciones = [
+
+{
+texto:
+"Pepe llegó a una nueva escuela. En el recreo vio que unos niños se burlaban de Luis porque usaba lentes y hablaba muy bajito. Luis se veía triste y estaba solo en una esquina. ¿Qué debería hacer Pepe?",
+opciones:[
+"Reírse también para caerles bien",
+"Acercarse a Luis y avisar a un maestro"
+],
+correcta:1,
+explicacion:
+"✅ Correcto. Ayudar y buscar apoyo de un adulto es lo correcto."
+},
+
+{
+texto:
+"Después del recreo, los niños escondieron la mochila de Luis. Luis comenzó a llorar porque no encontraba su tarea. ¿Qué debe hacer Pepe?",
+opciones:[
+"Ayudar a buscar la mochila y avisar a la maestra",
+"Esconder otra mochila para vengarse"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. Resolver problemas sin violencia es lo mejor."
+},
+
+{
+texto:
+"Uno de los niños le dijo a Pepe: 'Si ayudas a Luis, también te molestaremos'. Pepe sintió miedo. ¿Qué debería hacer?",
+opciones:[
+"Seguir ayudando y hablar con adultos",
+"Dejar solo a Luis"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. Nadie debe quedarse solo ante el bullying."
+},
+
+{
+texto:
+"En clase de deportes, Luis se cayó y algunos niños comenzaron a grabarlo con el celular para subir el video a internet. ¿Qué es lo correcto?",
+opciones:[
+"Pedir que dejen de grabar y ayudar a Luis",
+"Compartir el video"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. No debemos humillar ni compartir burlas."
+},
+
+{
+texto:
+"La maestra preguntó quién estaba molestando a Luis, pero nadie quería hablar. ¿Qué debería hacer Pepe?",
+opciones:[
+"Decir la verdad con respeto",
+"Mentir para proteger a los niños"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. Decir la verdad ayuda a resolver los problemas."
+},
+
+{
+texto:
+"Los papás de Luis fueron a la escuela para ayudar. Algunos niños comenzaron a pedir perdón. ¿Qué debe hacer Luis?",
+opciones:[
+"Escuchar las disculpas y seguir las reglas",
+"Insultar a todos"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. Resolver conflictos con respeto ayuda a mejorar."
+},
+
+{
+texto:
+"Un niño quería pelearse con los que molestaban a Luis para defenderlo. ¿Qué sería mejor?",
+opciones:[
+"Hablar con maestros y resolverlo sin golpes",
+"Pelearse en el patio"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. La violencia no resuelve los problemas."
+},
+
+{
+texto:
+"La escuela organizó una actividad sobre respeto y amistad. ¿Qué deberían hacer los alumnos?",
+opciones:[
+"Participar y aprender a convivir",
+"Burlarse de la actividad"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. Aprender sobre respeto mejora la convivencia."
+},
+
+{
+texto:
+"Después de varios días, Luis ya tenía más amigos y se sentía feliz. ¿Qué aprendió Pepe?",
+opciones:[
+"Que ayudar a otros es importante",
+"Que ignorar problemas es mejor"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. Ayudar y apoyar a otros hace una mejor escuela."
+},
+
+{
+texto:
+"Al final del año, la maestra preguntó qué fue lo más importante que aprendieron todos. ¿Cuál es la mejor respuesta?",
+opciones:[
+"Tratar a todos con respeto y pedir ayuda cuando sea necesario",
+"Que pelear es la mejor solución"
+],
+correcta:0,
+explicacion:
+"✅ Correcto. El respeto y la comunicación son fundamentales."
+}
+
+];
+
+let actual = 0;
+let puntos = 0;
+let correctas = 0;
+
+function cargarSituacion(){
+
+document.getElementById("contador").innerHTML =
+"Situación " + (actual + 1) + " de 10";
+
+document.getElementById("historia").innerHTML =
+situaciones[actual].texto;
+
+document.getElementById("mensaje").innerHTML = "";
+
+const opcionesDiv =
+document.getElementById("opciones");
+
+opcionesDiv.innerHTML = "";
+
+situaciones[actual].opciones.forEach((opcion,index)=>{
+
+const boton = document.createElement("button");
+
+boton.innerHTML = opcion;
+
+boton.classList.add("opcion");
+
+boton.onclick = ()=> verificar(index, boton);
+
+opcionesDiv.appendChild(boton);
+
+});
+
+}
+
+function verificar(index, boton){
+
+const botones =
+document.querySelectorAll(".opcion");
+
+botones.forEach(btn => btn.disabled = true);
+
+if(index === situaciones[actual].correcta){
+
+boton.classList.add("correcta");
+
+puntos += 2;
+correctas++;
+
+document.getElementById("mensaje").innerHTML =
+situaciones[actual].explicacion;
+
+}else{
+
+boton.classList.add("incorrecta");
+
+botones[situaciones[actual].correcta]
+.classList.add("correcta");
+
+document.getElementById("mensaje").innerHTML =
+"❌ Esa no es la mejor opción.<br><br>" +
+situaciones[actual].explicacion;
+
+}
+
+document.getElementById("puntos").innerHTML =
+"⭐ Puntos: " + puntos;
+
+actual++;
+
+setTimeout(()=>{
+
+if(actual < situaciones.length){
+
+cargarSituacion();
+
+}else{
+
+terminarJuego();
+
+}
+
+}, 4000);
+
+}
+
+function terminarJuego(){
+
+document.getElementById("historia").innerHTML =
+"🏆 FIN DE LA HISTORIA 🏆";
+
+document.getElementById("opciones").innerHTML = "";
+
+document.getElementById("contador").innerHTML = "";
+
+document.getElementById("final").innerHTML = `
+
+✅ Respuestas correctas: ${correctas} de 10
+<br><br>
+
+⭐ Total de puntos: ${puntos}
+<br><br>
+
+📚 ¡Excelente trabajo!
+Aprendiste cómo actuar correctamente ante el bullying escolar.
+<br><br>
+
+<button onclick="location.reload()"
+style="
+padding:15px 25px;
+font-size:22px;
+border:none;
+border-radius:12px;
+background:#ff9800;
+color:white;
+cursor:pointer;
+font-weight:bold;
+">
+🔄 Jugar otra vez
+</button>
+
+`;
+
+}
+
+cargarSituacion();
+
+</script>
+
+</body>
+</html>

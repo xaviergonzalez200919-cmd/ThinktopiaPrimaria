@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>100 Campostelitos Dijieron</title>
+
+  <style>
+    body{
+      margin:0;
+      padding:0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg,#ffcc00,#ff0066);
+      color:white;
+      text-align:center;
+    }
+
+    .contenedor{
+      max-width:800px;
+      margin:40px auto;
+      background:rgba(0,0,0,0.4);
+      padding:30px;
+      border-radius:20px;
+      box-shadow:0 0 20px black;
+    }
+
+    h1{
+      font-size:50px;
+      color:yellow;
+      text-shadow:3px 3px 5px black;
+    }
+
+    #contador{
+      font-size:25px;
+      margin-bottom:20px;
+    }
+
+    #pregunta{
+      font-size:32px;
+      margin:30px 0;
+    }
+
+    .opcion{
+      display:block;
+      width:80%;
+      margin:12px auto;
+      padding:15px;
+      border:none;
+      border-radius:12px;
+      font-size:22px;
+      cursor:pointer;
+      transition:0.3s;
+      background:white;
+      color:black;
+      font-weight:bold;
+    }
+
+    .opcion:hover{
+      transform:scale(1.05);
+      background:#00e5ff;
+    }
+
+    .correcta{
+      background:green !important;
+      color:white;
+    }
+
+    .incorrecta{
+      background:red !important;
+      color:white;
+    }
+
+    #mensaje{
+      font-size:28px;
+      margin-top:20px;
+      color:yellow;
+    }
+
+    #puntos{
+      font-size:28px;
+      margin-top:20px;
+    }
+
+    #final{
+      font-size:30px;
+      margin-top:30px;
+    }
+
+    #reiniciar{
+      margin-top:25px;
+      padding:15px 25px;
+      font-size:22px;
+      border:none;
+      border-radius:12px;
+      background:#00c853;
+      color:white;
+      cursor:pointer;
+      display:none;
+    }
+
+    img{
+      width:180px;
+      margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+  <h1>😂 100 Campostelitos Dijieron 😂</h1>
+
+  <img src="https://i.imgur.com/8Qf6R0L.png">
+
+  <div id="contador">Pregunta 1 de 10</div>
+
+  <div id="pregunta"></div>
+
+  <div id="opciones"></div>
+
+  <div id="mensaje"></div>
+
+  <div id="puntos">Puntos: 0</div>
+
+  <div id="final"></div>
+
+  <button id="reiniciar" onclick="reiniciarJuego()">
+    🔄 Jugar otra vez
+  </button>
+
+</div>
+
+<script>
+
+const preguntas = [
+  {
+    pregunta: "¿Cuál es el plural de 'lápiz'?",
+    opciones: ["Lápizes","Lápices","Lápizs","Lapiz"],
+    correcta: 1
+  },
+  {
+    pregunta: "¿Qué signo abre una pregunta?",
+    opciones: ["¿","!","(",":"],
+    correcta: 0
+  },
+  {
+    pregunta: "¿Cuál es un verbo?",
+    opciones: ["Mesa","Correr","Azul","Perro"],
+    correcta: 1
+  },
+  {
+    pregunta: "Sinónimo de feliz:",
+    opciones: ["Triste","Contento","Débil","Lento"],
+    correcta: 1
+  },
+  {
+    pregunta: "¿Qué palabra tiene acento?",
+    opciones: ["Casa","Perro","Canción","Libro"],
+    correcta: 2
+  },
+  {
+    pregunta: "¿Cuál es un sustantivo?",
+    opciones: ["Bonito","Escuela","Rápido","Correr"],
+    correcta: 1
+  },
+  {
+    pregunta: "¿Cuál está bien escrita?",
+    opciones: ["Vaca","Bakka","Vacaa","Vakka"],
+    correcta: 0
+  },
+  {
+    pregunta: "¿Qué describe un adjetivo?",
+    opciones: [
+      "Una acción",
+      "Cómo es algo",
+      "Un lugar",
+      "Un número"
+    ],
+    correcta: 1
+  },
+  {
+    pregunta: "¿Qué palabra es femenina?",
+    opciones: ["Niño","Perro","Mesa","Zapato"],
+    correcta: 2
+  },
+  {
+    pregunta: "¿Cuál es una oración?",
+    opciones: [
+      "Casa azul",
+      "Corre rápido",
+      "El perro juega en el parque",
+      "Bonito lápiz"
+    ],
+    correcta: 2
+  },
+  {
+    pregunta: "¿Qué lleva una oración al final?",
+    opciones: [",",".","¿","("],
+    correcta: 1
+  },
+  {
+    pregunta: "¿Cuál palabra rima con gato?",
+    opciones: ["Mesa","Pato","Libro","Casa"],
+    correcta: 1
+  }
+];
+
+let preguntasUsadas = [];
+let preguntaActual = 0;
+let puntos = 0;
+let correctas = 0;
+
+function obtenerPreguntaAleatoria(){
+
+  if(preguntasUsadas.length >= 10){
+    terminarJuego();
+    return;
+  }
+
+  let indice;
+
+  do{
+    indice = Math.floor(Math.random() * preguntas.length);
+  }while(preguntasUsadas.includes(indice));
+
+  preguntasUsadas.push(indice);
+
+  const pregunta = preguntas[indice];
+
+  document.getElementById("contador").innerHTML =
+    "Pregunta " + (preguntaActual + 1) + " de 10";
+
+  document.getElementById("pregunta").innerHTML =
+    pregunta.pregunta;
+
+  const opcionesDiv = document.getElementById("opciones");
+  opcionesDiv.innerHTML = "";
+
+  pregunta.opciones.forEach((opcion, index)=>{
+
+    const boton = document.createElement("button");
+
+    boton.innerHTML = opcion;
+    boton.classList.add("opcion");
+
+    boton.onclick = ()=> verificarRespuesta(index, pregunta.correcta);
+
+    opcionesDiv.appendChild(boton);
+
+  });
+
+}
+
+function verificarRespuesta(seleccionada, correcta){
+
+  const botones = document.querySelectorAll(".opcion");
+
+  botones.forEach(btn => btn.disabled = true);
+
+  if(seleccionada === correcta){
+
+    botones[seleccionada].classList.add("correcta");
+
+    puntos += 2;
+    correctas++;
+
+    document.getElementById("mensaje").innerHTML =
+      "😎 ¡Esoooo Campostelito!";
+
+  }else{
+
+    botones[seleccionada].classList.add("incorrecta");
+    botones[correcta].classList.add("correcta");
+
+    document.getElementById("mensaje").innerHTML =
+      "😂 ¡Ay nooo! Esa no era";
+
+  }
+
+  document.getElementById("puntos").innerHTML =
+    "Puntos: " + puntos;
+
+  preguntaActual++;
+
+  setTimeout(()=>{
+
+    document.getElementById("mensaje").innerHTML = "";
+
+    if(preguntaActual < 10){
+      obtenerPreguntaAleatoria();
+    }else{
+      terminarJuego();
+    }
+
+  }, 1800);
+
+}
+
+function terminarJuego(){
+
+  document.getElementById("pregunta").innerHTML =
+    "🏆 FIN DEL JUEGO 🏆";
+
+  document.getElementById("opciones").innerHTML = "";
+
+  document.getElementById("contador").innerHTML = "";
+
+  document.getElementById("final").innerHTML = `
+    ✅ Preguntas correctas: ${correctas} de 10 <br><br>
+    ⭐ Total de puntos: ${puntos} <br><br>
+    😂 Gracias por jugar 100 Campostelitos Dijieron 😂
+  `;
+
+  document.getElementById("reiniciar").style.display = "inline-block";
+
+}
+
+function reiniciarJuego(){
+
+  preguntasUsadas = [];
+  preguntaActual = 0;
+  puntos = 0;
+  correctas = 0;
+
+  document.getElementById("puntos").innerHTML =
+    "Puntos: 0";
+
+  document.getElementById("final").innerHTML = "";
+
+  document.getElementById("reiniciar").style.display = "none";
+
+  obtenerPreguntaAleatoria();
+
+}
+
+obtenerPreguntaAleatoria();
+
+</script>
+
+</body>
+</html>

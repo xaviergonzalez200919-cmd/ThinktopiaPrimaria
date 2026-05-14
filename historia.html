@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUESOS DE LA HISTORIA</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+:root {
+  --gold: #FFD700;
+  --red: #CC0000;
+  --blue: #0033AA;
+  --green: #00AA44;
+  --white: #F0F0F0;
+  --black: #0A0A0A;
+  --purple: #6600CC;
+  --orange: #FF6600;
+  --pixel: 4px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; }
+
+body {
+  background: #0A0A0A;
+  font-family: 'Press Start 2P', monospace;
+  overflow: hidden;
+  width: 100vw; height: 100vh;
+  cursor: crosshair;
+}
+
+canvas { display: block; }
+
+#gameContainer {
+  position: relative;
+  width: 100vw; height: 100vh;
+}
+
+/* ===== SCREENS ===== */
+.screen {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: none;
+  z-index: 10;
+}
+.screen.active { display: flex; }
+
+/* ===== TITLE SCREEN ===== */
+#titleScreen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+#titleBg {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url('https://preview.redd.it/socrates-vs-skeleton-art-by-wander00r-v0-77jue3ps0kqg1.jpeg?width=1080&crop=smart&auto=webp&s=98ac95f4dfa15ec10e18a189a5ab615ee7f96ff3');
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.45) saturate(1.6) contrast(1.2);
+  z-index: 0;
+}
+
+#titleOverlay {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,30,0.75) 100%);
+  z-index: 1;
+}
+
+#particles {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 2; pointer-events: none;
+}
+
+#titleContent {
+  position: relative; z-index: 3;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 18px;
+}
+
+#titleText {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(20px, 4vw, 46px);
+  color: var(--gold);
+  text-shadow:
+    4px 4px 0 #8B4500,
+    8px 8px 0 #400,
+    0 0 30px rgba(255,215,0,0.9),
+    0 0 60px rgba(255,100,0,0.5);
+  text-align: center;
+  letter-spacing: 2px;
+  line-height: 1.4;
+  animation: titlePulse 2s ease-in-out infinite, titleShake 0.1s ease-in-out 0s 3;
+}
+
+#subtitle {
+  font-family: 'VT323', monospace;
+  font-size: clamp(16px, 2.5vw, 28px);
+  color: #FF4444;
+  text-shadow: 2px 2px 0 #800, 0 0 20px rgba(255,0,0,0.6);
+  letter-spacing: 4px;
+  animation: subtitleBlink 1.5s step-end infinite;
+}
+
+@keyframes titlePulse {
+  0%,100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.2); }
+}
+@keyframes subtitleBlink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes titleShake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.menuBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(10px, 1.5vw, 14px);
+  color: var(--gold);
+  background: rgba(0,0,0,0.8);
+  border: 3px solid var(--gold);
+  padding: 12px 28px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: all 0.1s;
+  box-shadow: 4px 4px 0 #8B4500, inset 0 0 10px rgba(255,215,0,0.1);
+  position: relative;
+  min-width: 220px;
+  text-align: center;
+}
+.menuBtn:hover {
+  background: var(--gold);
+  color: #000;
+  transform: translate(-2px,-2px);
+  box-shadow: 6px 6px 0 #8B4500;
+}
+.menuBtn:active {
+  transform: translate(2px,2px);
+  box-shadow: 2px 2px 0 #8B4500;
+}
+
+#versionText {
+  font-family: 'VT323', monospace;
+  font-size: 16px; color: #666;
+  margin-top: 8px;
+}
+
+/* ===== STORY SCREEN ===== */
+#storyScreen {
+  background: #000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+#storyPanel {
+  border: 4px solid var(--white);
+  max-width: 680px; width: 100%;
+  background: #111;
+  position: relative;
+  box-shadow: 8px 8px 0 #444;
+}
+
+.panelHeader {
+  background: var(--red);
+  padding: 8px 16px;
+  font-size: 11px; color: #fff;
+  letter-spacing: 2px;
+  border-bottom: 4px solid #fff;
+  display: flex; justify-content: space-between;
+}
+
+#storyContent {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+#storyArt {
+  font-size: 64px;
+  text-align: center;
+  filter: drop-shadow(0 0 10px rgba(255,215,0,0.8));
+  animation: float 2s ease-in-out infinite;
+  line-height: 1;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+#storyText {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--white);
+  line-height: 1.6;
+}
+
+#storyText .highlight {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.panelFooter {
+  border-top: 3px solid #444;
+  padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+#storyProgress {
+  font-size: 9px; color: #666;
+}
+
+/* ===== HUD ===== */
+#hud {
+  position: absolute; top: 0; left: 0;
+  width: 100%; z-index: 5;
+  pointer-events: none;
+  padding: 8px 12px;
+  display: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#hud.active { display: flex; }
+
+.hudPanel {
+  background: rgba(0,0,0,0.85);
+  border: 2px solid var(--gold);
+  padding: 6px 10px;
+  font-size: 8px;
+  min-width: 160px;
+}
+
+.hudLabel {
+  color: #888; font-size: 7px;
+  margin-bottom: 3px;
+  letter-spacing: 1px;
+}
+
+.barContainer {
+  width: 140px; height: 12px;
+  background: #333;
+  border: 2px solid #555;
+  position: relative;
+  overflow: hidden;
+}
+
+#hpBar {
+  height: 100%; background: var(--green);
+  transition: width 0.2s;
+  position: relative;
+}
+#hpBar::after {
+  content: '';
+  position: absolute; right: 0; top: 0;
+  width: 4px; height: 100%;
+  background: rgba(255,255,255,0.4);
+}
+
+#bossHpContainer {
+  position: absolute; top: 8px; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  display: none;
+}
+#bossHpContainer.active { display: block; }
+
+#bossName {
+  font-size: 9px; color: var(--red);
+  margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(255,0,0,0.8);
+}
+
+#bossBar {
+  width: 280px; height: 14px;
+  background: #300;
+  border: 2px solid var(--red);
+}
+
+#bossHpFill {
+  height: 100%; background: var(--red);
+  transition: width 0.3s;
+  position: relative;
+}
+#bossHpFill::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 50%;
+  background: rgba(255,255,255,0.2);
+}
+
+.comboDisplay {
+  font-size: 10px; color: var(--orange);
+  text-shadow: 0 0 8px var(--orange);
+  min-height: 16px;
+}
+
+#weaponIcon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+#levelInfo {
+  font-size: 7px; color: #aaa;
+  text-align: right;
+}
+
+#levelName {
+  color: var(--gold); font-size: 9px;
+}
+
+/* ===== GAME CANVAS ===== */
+#gameCanvas {
+  position: absolute; top: 0; left: 0;
+  z-index: 1;
+}
+
+/* ===== DIALOGUE BOX ===== */
+#dialogueBox {
+  position: absolute; bottom: 60px; left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, 90vw);
+  background: rgba(0,0,0,0.92);
+  border: 3px solid var(--gold);
+  padding: 14px 18px;
+  z-index: 8;
+  display: none;
+  box-shadow: 0 0 20px rgba(255,215,0,0.3);
+}
+#dialogueBox.active { display: block; }
+
+#dialogueName {
+  font-size: 9px; color: var(--gold);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+#dialogueText {
+  font-family: 'VT323', monospace;
+  font-size: 20px; color: #fff;
+  line-height: 1.5;
+}
+
+#dialoguePrompt {
+  text-align: right;
+  font-size: 8px; color: #888;
+  margin-top: 8px;
+  animation: subtitleBlink 1s step-end infinite;
+}
+
+/* ===== DAMAGE NUMBERS ===== */
+.dmgNumber {
+  position: absolute;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 20;
+  text-shadow: 3px 3px 0 #000;
+  animation: dmgFloat 1.2s ease-out forwards;
+}
+@keyframes dmgFloat {
+  0% { transform: translateY(0) scale(1.4); opacity: 1; }
+  60% { transform: translateY(-50px) scale(1); opacity: 1; }
+  100% { transform: translateY(-80px) scale(0.8); opacity: 0; }
+}
+
+/* ===== HIT FLASH ===== */
+#hitFlash {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255,255,255,0);
+  z-index: 15; pointer-events: none;
+  transition: background 0.05s;
+}
+
+/* ===== GAME OVER / WIN ===== */
+#gameOverScreen, #winScreen {
+  background: rgba(0,0,0,0.92);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+#gameOverTitle {
+  font-size: clamp(24px, 5vw, 56px);
+  color: var(--red);
+  text-shadow: 4px 4px 0 #800, 0 0 30px rgba(255,0,0,0.7);
+  animation: titlePulse 1s ease-in-out infinite;
+}
+
+#winTitle {
+  font-size: clamp(20px, 4vw, 44px);
+  color: var(--gold);
+  text-shadow: 4px 4px 0 #8B4500, 0 0 30px rgba(255,215,0,0.8);
+  text-align: center;
+  line-height: 1.5;
+}
+
+#deathQuote {
+  font-family: 'VT323', monospace;
+  font-size: 22px; color: #888;
+  text-align: center;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* ===== CONTROLS HINT ===== */
+#controlsHint {
+  position: absolute; bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px; color: #444;
+  z-index: 6; pointer-events: none;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+/* ===== LEVEL TRANSITION ===== */
+#levelTransition {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #000;
+  z-index: 25;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+}
+#levelTransition.active { opacity: 1; pointer-events: all; }
+
+#transTitle {
+  font-size: clamp(14px, 2.5vw, 24px);
+  color: var(--gold);
+  text-shadow: 3px 3px 0 #8B4500;
+  margin-bottom: 12px;
+}
+#transEpoch {
+  font-family: 'VT323', monospace;
+  font-size: 28px; color: var(--white);
+  margin-bottom: 20px;
+}
+
+/* ===== EFFECTS ===== */
+.screenShake { animation: screenShakeAnim 0.3s ease-in-out; }
+@keyframes screenShakeAnim {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px) rotate(-1deg); }
+  40% { transform: translateX(8px) rotate(1deg); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.standAura {
+  animation: standAuraAnim 0.3s ease-in-out;
+}
+@keyframes standAuraAnim {
+  0% { filter: brightness(3) hue-rotate(0deg); }
+  50% { filter: brightness(2) hue-rotate(180deg) saturate(3); }
+  100% { filter: brightness(1); }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div id="gameContainer">
+  <!-- CANVAS -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HIT FLASH -->
+  <div id="hitFlash"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hudPanel">
+      <div class="hudLabel">⬛ HUESO-CHAN</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span id="weaponIcon">🦴</span>
+        <div>
+          <div class="barContainer"><div id="hpBar" style="width:100%"></div></div>
+          <div style="font-size:7px;color:#888;margin-top:2px;"><span id="hpVal">100</span>/<span id="hpMax">100</span> HP</div>
+        </div>
+      </div>
+      <div class="comboDisplay" id="comboDisplay"></div>
+    </div>
+
+    <div id="bossHpContainer">
+      <div id="bossName">??? BOSS</div>
+      <div id="bossBar"><div id="bossHpFill" style="width:100%"></div></div>
+    </div>
+
+    <div class="hudPanel" style="text-align:right;">
+      <div id="levelName" class="hudLabel">NIVEL 1</div>
+      <div id="levelInfo">ENEMIGOS: <span id="enemyCount">0</span></div>
+      <div style="font-size:7px;color:#666;margin-top:3px;">ARMA: <span id="weaponName" style="color:var(--gold)">HUESOS</span></div>
+    </div>
+  </div>
+
+  <!-- DIALOGUE -->
+  <div id="dialogueBox">
+    <div id="dialogueName">???</div>
+    <div id="dialogueText">...</div>
+    <div id="dialoguePrompt">▶ ESPACIO / CLICK</div>
+  </div>
+
+  <!-- CONTROLS HINT -->
+  <div id="controlsHint">WASD/FLECHAS: MOVER | Z/J: ATAQUE | X/K: ATAQUE ESPECIAL | ESPACIO: ESCUDO</div>
+
+  <!-- HIT FLASH -->
+  <div id="hitFlash"></div>
+
+  <!-- LEVEL TRANSITION -->
+  <div id="levelTransition">
+    <div id="transTitle">ÉPOCA DESBLOQUEADA</div>
+    <div id="transEpoch">???</div>
+    <div style="font-family:'VT323';font-size:20px;color:#666;margin-top:12px;" id="transDesc"></div>
+  </div>
+
+  <!-- ==================== TITLE SCREEN ==================== -->
+  <div id="titleScreen" class="screen active">
+    <div id="titleBg"></div>
+    <div id="titleOverlay"></div>
+    <canvas id="particles" width="800" height="600"></canvas>
+    <div id="titleContent">
+      <div id="titleText">💀 HUESOS<br>DE LA<br>HISTORIA 💀</div>
+      <div id="subtitle">✦ SOCRATES ATACA!✦</div>
+      <div style="height:16px"></div>
+      <button class="menuBtn" onclick="startGame()">▶ INICIAR JUEGO</button>
+      <button class="menuBtn" onclick="showControls()">⌨ CONTROLES</button>
+      <div id="versionText">v1.0 — "NO CONOCES LA HISTORIA, PAPU :v"</div>
+    </div>
+  </div>
+
+  <!-- ==================== STORY SCREEN ==================== -->
+  <div id="storyScreen" class="screen">
+    <div id="storyPanel">
+      <div class="panelHeader">
+        <span>💀 HUESOS DE LA HISTORIA</span>
+        <span id="storyChapter">PRÓLOGO</span>
+      </div>
+      <div id="storyContent">
+        <div id="storyArt">💀</div>
+        <div id="storyText">...</div>
+      </div>
+      <div class="panelFooter">
+        <div id="storyProgress">PANEL 1/1</div>
+        <button class="menuBtn" style="min-width:120px;font-size:9px;padding:8px 16px;" id="storyNextBtn" onclick="nextStoryPanel()">SIGUIENTE ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GAME OVER ==================== -->
+  <div id="gameOverScreen" class="screen">
+    <div id="gameOverTitle">💀 GAME OVER 💀</div>
+    <div id="deathQuote"></div>
+    <button class="menuBtn" onclick="respawnPlayer()">▶ INTENTAR DE NUEVO</button>
+    <button class="menuBtn" onclick="goToTitle()">⬛ MENÚ PRINCIPAL</button>
+  </div>
+
+  <!-- ==================== WIN SCREEN ==================== -->
+  <div id="winScreen" class="screen">
+    <div id="winTitle">🏆 ¡LA HISTORIA<br>ESTÁ SALVADA! 🏆</div>
+    <div id="deathQuote" style="color:var(--gold);font-family:'VT323';font-size:22px;text-align:center;max-width:500px;line-height:1.6">
+      Sócrates fue derrotado. La línea temporal de México está restaurada.<br>
+      Hueso-chan regresó al museo... a ser ignorado por todos.<br><br>
+      <span style="color:#666;font-size:16px">¿Sabías que? Todo lo que ves fue basado en historia real (más o menos).</span>
+    </div>
+    <button class="menuBtn" onclick="goToTitle()">🏠 MENÚ PRINCIPAL</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  HUESOS DE LA HISTORIA - JOJO MEME EDITION
+//  Combat-focused pixel art game
+// ============================================================
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Resize canvas
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ============================================================
+//  PARTICLE SYSTEM (title screen)
+// ============================================================
+const pCanvas = document.getElementById('particles');
+const pCtx = pCanvas.getContext('2d');
+const titleParticles = [];
+
+function resizeParticles() {
+  pCanvas.width = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+}
+resizeParticles();
+window.addEventListener('resize', resizeParticles);
+
+for (let i = 0; i < 60; i++) {
+  titleParticles.push({
+    x: Math.random() * 1200,
+    y: Math.random() * 800,
+    vx: (Math.random() - 0.5) * 0.8,
+    vy: -Math.random() * 1.5 - 0.3,
+    size: Math.random() * 5 + 2,
+    alpha: Math.random(),
+    color: ['#FFD700','#FF6600','#FF0000','#FFFFFF','#00CCFF'][Math.floor(Math.random()*5)]
+  });
+}
+
+function animateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  titleParticles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.alpha -= 0.003;
+    if (p.alpha <= 0 || p.y < -20) {
+      p.x = Math.random() * pCanvas.width;
+      p.y = pCanvas.height + 10;
+      p.alpha = Math.random() * 0.8 + 0.2;
+    }
+    pCtx.save();
+    pCtx.globalAlpha = Math.max(0, p.alpha);
+    pCtx.fillStyle = p.color;
+    pCtx.shadowBlur = 8;
+    pCtx.shadowColor = p.color;
+    pCtx.fillRect(Math.floor(p.x), Math.floor(p.y), p.size, p.size);
+    pCtx.restore();
+  });
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// ============================================================
+//  AUDIO ENGINE
+// ============================================================
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type, freq = 440, dur = 0.1, vol = 0.3) {
+  try {
+    const ac = getAudio();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    gain.gain.setValueAtTime(vol, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ac.currentTime);
+    osc.start(); osc.stop(ac.currentTime + dur);
+  } catch(e) {}
+}
+
+function playHit()    { playSound('sawtooth', 120, 0.08, 0.4); playSound('square', 80, 0.05, 0.2); }
+function playSlash()  { playSound('sawtooth', 300, 0.05, 0.3); playSound('square', 500, 0.02, 0.15); }
+function playDodge()  { playSound('sine', 800, 0.06, 0.2); }
+function playLevelUp(){ playSound('square', 523, 0.1, 0.4); setTimeout(()=>playSound('square', 659, 0.1, 0.4), 100); setTimeout(()=>playSound('square', 784, 0.2, 0.4), 200); }
+function playDeath()  { [400,300,200,100].forEach((f,i) => setTimeout(()=>playSound('sawtooth', f, 0.15, 0.4), i*120)); }
+function playSpecial(){ playSound('sawtooth', 200, 0.05, 0.4); setTimeout(()=>playSound('square', 400, 0.05, 0.4), 50); setTimeout(()=>playSound('sine', 600, 0.1, 0.5), 100); }
+function playBossHit(){ playSound('sawtooth', 80, 0.15, 0.5); }
+
+// ============================================================
+//  GAME DATA
+// ============================================================
+const LEVELS = [
+  {
+    id: 0, name: "TENOCHTITLÁN", year: "1325-1521",
+    bg: ['#1a3a1a','#2d5a2d'],
+    groundColor: '#4a7c4a', skyColor: '#1a4a6e',
+    enemyType: 'guerrero', enemyColor: '#8B4513',
+    weapon: { name: 'MACUAHUITL', icon: '⚔️', dmg: 18, special: 'MAZA SAGRADA', specialDmg: 45 },
+    bossName: 'TLÁLOC CORROMPIDO',
+    bossColor: '#2255AA',
+    story: [
+      { art: '💀', text: '...Soy <span class="highlight">HUESO-CHAN</span>.\n\nMe desperté en el Museo Nacional de Antropología...\n\n...y algo está muy mal con la historia.', ch: 'PRÓLOGO - PANEL 1' },
+      { art: '🤔', text: 'El guardia del museo me gritó:\n"¡Sócrates está mezclando las épocas!\n¡Los aztecas tienen WiFi!\n¡Juárez tiene un iPhone!"', ch: 'PRÓLOGO - PANEL 2' },
+      { art: '💪', text: 'YO, <span class="highlight">HUESO-CHAN</span>, debo arreglar esto.\n\nCon mi poder de esqueleto meme, viajaré por la historia de México.\n\n¡INICIO EL VIAJE!', ch: 'PRÓLOGO - PANEL 3' },
+      { art: '🏛️', text: 'ÉPOCA 1: <span class="highlight">TENOCHTITLÁN</span>\nFundada en 1325 d.C. en un islote del Lago de Texcoco.\n\nLos mexicas siguieron a un águila devorando una serpiente.\n\nÉSA es la señal. Ésta es la historia real.', ch: 'TENOCHTITLÁN - INTRO' }
+    ]
+  },
+  {
+    id: 1, name: "CONQUISTA", year: "1519-1521",
+    bg: ['#3a2a1a','#6a4a2a'],
+    groundColor: '#8B6344', skyColor: '#4a3020',
+    enemyType: 'conquistador', enemyColor: '#888',
+    weapon: { name: 'MACUAHUITL', icon: '⚔️', dmg: 18, special: 'MAZA SAGRADA', specialDmg: 45 },
+    bossName: 'CORTÉS GLITCHEADO',
+    bossColor: '#888888',
+    story: [
+      { art: '⚔️', text: 'ÉPOCA 2: <span class="highlight">LA CONQUISTA</span>\n1519 - Hernán Cortés llega a México.\n\nFormó alianzas con pueblos enemigos de los mexicas.', ch: 'CONQUISTA - PANEL 1' },
+      { art: '🐴', text: 'Los tlaxcaltecas se aliaron con los españoles.\n\nEn 1521, Tenochtitlán cayó.\n\nSócrates metió caballos con turbinas de jet.\n¡Eso no es históricamente correcto, papu!', ch: 'CONQUISTA - PANEL 2' }
+    ]
+  },
+  {
+    id: 2, name: "INDEPENDENCIA", year: "1810-1821",
+    bg: ['#1a1a3a','#2a2a5a'],
+    groundColor: '#6a5a3a', skyColor: '#0a0a2a',
+    enemyType: 'realista', enemyColor: '#CC0000',
+    weapon: { name: 'ESPADA', icon: '🗡️', dmg: 22, special: 'GRITO DE DOLORES', specialDmg: 55 },
+    bossName: 'VIRREY CORRUPTO',
+    bossColor: '#CC0000',
+    story: [
+      { art: '⛪', text: 'ÉPOCA 3: <span class="highlight">INDEPENDENCIA</span>\n16 de Septiembre de 1810.\n\nEl cura Miguel Hidalgo dio el Grito de Dolores.\n\n¡VIVA MÉXICO, CABRONES!', ch: 'INDEPENDENCIA - PANEL 1' },
+      { art: '🔔', text: 'Sócrates confundió el Grito con un karaoke.\n\nLos insurgentes incluían a Morelos, Allende y la Corregidora Josefa Ortiz de Domínguez.\n\n¡Hueso-Chan debe restaurar el orden!', ch: 'INDEPENDENCIA - PANEL 2' }
+    ]
+  },
+  {
+    id: 3, name: "REFORMA", year: "1857-1861",
+    bg: ['#3a1a1a','#5a2a1a'],
+    groundColor: '#5a4030', skyColor: '#200a0a',
+    enemyType: 'conservador', enemyColor: '#4400AA',
+    weapon: { name: 'ESPADA', icon: '🗡️', dmg: 22, special: 'LEY LERDO', specialDmg: 55 },
+    bossName: 'MAX DE HABSBURGO',
+    bossColor: '#4400AA',
+    story: [
+      { art: '⚖️', text: 'ÉPOCA 4: <span class="highlight">LA REFORMA</span>\nBenito Juárez, primer presidente indígena de México.\n\n"El respeto al derecho ajeno es la paz."\n\nSócrates le dio un smartphone a Maximiliano.', ch: 'REFORMA - PANEL 1' },
+      { art: '🎩', text: 'Las Leyes de Reforma separaron la Iglesia del Estado.\n\nMaximiliano de Habsburgo fue un emperador impuesto por Francia.\n\n¡Juárez lo derrotó en 1867!', ch: 'REFORMA - PANEL 2' }
+    ]
+  },
+  {
+    id: 4, name: "REVOLUCIÓN", year: "1910-1920",
+    bg: ['#2a1a0a','#4a2a0a'],
+    groundColor: '#6a5020', skyColor: '#150800',
+    enemyType: 'porfirista', enemyColor: '#553300',
+    weapon: { name: 'RIFLE', icon: '🔫', dmg: 26, special: 'FUEGO VILLISTA', specialDmg: 65 },
+    bossName: 'PORFIRIO DIOS',
+    bossColor: '#553300',
+    story: [
+      { art: '🐎', text: 'ÉPOCA 5: <span class="highlight">LA REVOLUCIÓN</span>\n1910 - Francisco I. Madero lanza el Plan de San Luis.\n\n¡Sufragio efectivo, no reelección!\n\nVilla y Zapata... los cuates de la revolución.', ch: 'REVOLUCIÓN - PANEL 1' },
+      { art: '🌵', text: 'Emiliano Zapata: "La tierra es de quien la trabaja."\n\nPancho Villa: máquina de guerra del norte.\n\nSócrates les dio helicópteros de combate.\n¡ESO NUNCA PASÓ!', ch: 'REVOLUCIÓN - PANEL 2' }
+    ]
+  },
+  {
+    id: 5, name: "SIGLO XX", year: "1920-2000",
+    bg: ['#0a0a2a','#1a1a4a'],
+    groundColor: '#303050', skyColor: '#050510',
+    enemyType: 'priista', enemyColor: '#006600',
+    weapon: { name: 'RIFLE', icon: '🔫', dmg: 26, special: 'FUEGO VILLISTA', specialDmg: 65 },
+    bossName: 'EL SISTEMA',
+    bossColor: '#006600',
+    story: [
+      { art: '🏙️', text: 'ÉPOCA 6: <span class="highlight">SIGLO XX</span>\nMéxico moderno. El PRI gobernó 71 años.\n\n1968: Tlatelolco. Una herida que no cierra.\n\n1985: El terremoto que demostró que el pueblo se organiza solo.', ch: 'SIGLO XX - PANEL 1' },
+      { art: '📺', text: 'La Ciudad de México creció hasta ser una de las más grandes del mundo.\n\nTratado TLCAN en 1994.\n\nSócrates metió al EZLN en TikTok. ¡QUÉ LOCURA!', ch: 'SIGLO XX - PANEL 2' }
+    ]
+  },
+  {
+    id: 6, name: "EL OLIMPO DE SÓCRATES", year: "???",
+    bg: ['#100010','#200020'],
+    groundColor: '#1a001a', skyColor: '#050005',
+    enemyType: 'filosofo', enemyColor: '#8800CC',
+    weapon: null, // keeps previous
+    bossName: 'SÓCRATES EL PERTURBADOR',
+    bossColor: '#AA00FF',
+    isFinal: true,
+    story: [
+      { art: '🏛️', text: 'NIVEL FINAL: <span class="highlight">EL OLIMPO DE SÓCRATES</span>\n\n"Solo sé que no sé nada."\n\n...dice mientras destruye la línea temporal de México.', ch: 'FINAL - PANEL 1' },
+      { art: '🤯', text: 'Sócrates cree que puede enseñar filosofía mezclando el pasado con el futuro.\n\nHueso-Chan debe enfrentarlo en combate final.\n\n¡LA HISTORIA DE MÉXICO NO SE TOCA!', ch: 'FINAL - PANEL 2' },
+      { art: '💀', text: 'Hueso-Chan adopta su pose más JoJo posible.\n\n"¡ORA ORA ORA ORA!"\n\nSócrates: "¿Qué significa esto, joven esqueleto?"\n\n"¡QUE TE VOY A DAR EN LA MADRE, FILÓSOFO!"', ch: 'FINAL - PANEL 3' }
+    ]
+  }
+];
+
+const SOCRATES_QUOTES = [
+  "Solo sé que no sé nada... ¡pero sé que te voy a ganar!",
+  "La vida sin examen no merece vivirse... ¡como la tuya!",
+  "¿Qué es la justicia? ¿Y por qué me pegas?",
+  "Conócete a ti mismo... ¡sobre todo que estás perdiendo!",
+  "La sabiduría comienza con la duda... yo dudo que me puedas vencer.",
+  "Soy el tábano de la historia mexicana, ¡je je je!",
+  "Platón me habría defendido mejor que tú.",
+  "¡El conocimiento es poder, esqueleto meme!",
+  "¿Acaso no ves que el tiempo es una ilusión, papu?",
+  "Discutiré tu técnica de combate en el ágora... ¡después de derrotarte!"
+];
+
+const DEATH_QUOTES = [
+  "Sócrates: 'Un hombre sabio sabe cuándo retirarse...'",
+  "La historia dice: 'Inténtalo otra vez, papu'",
+  "El museo te espera, esqueleto.",
+  "¿Qué haría Hidalgo? ¡Intentarlo de nuevo!",
+  "Zapata diría: 'La tierra es de quien la trabaja... y tú no trabajaste.'",
+  "Hasta los huesos duelen. Literalmente.",
+  "Sócrates: '¿Ves? La derrota también es una lección.'",
+  "Villa habría recargado el rifle, compa."
+];
+
+// ============================================================
+//  GAME STATE
+// ============================================================
+const G = {
+  state: 'title', // title | story | playing | dialogue | gameover | win
+  currentLevel: 0,
+  storyPanel: 0,
+  storyPanels: [],
+
+  player: null,
+  enemies: [],
+  projectiles: [],
+  particles: [],
+  effects: [],
+
+  keys: {},
+  lastTime: 0,
+  combo: 0,
+  comboTimer: 0,
+  dialogueQueue: [],
+  dialogueActive: false,
+  bossSpawned: false,
+  bossDefeated: false,
+  enemiesKilled: 0,
+  enemiesNeeded: 6,
+  phase: 'enemies', // enemies | boss
+  socratesQuoteTimer: 0,
+  floor: 0,
+  cameraX: 0,
+  levelWidth: 1600,
+  groundY: 0,
+};
+
+// ============================================================
+//  ENTITY CLASSES
+// ============================================================
+class Entity {
+  constructor(x, y, w, h, color) {
+    this.x = x; this.y = y;
+    this.w = w; this.h = h;
+    this.color = color;
+    this.vx = 0; this.vy = 0;
+    this.hp = 100; this.maxHp = 100;
+    this.alive = true;
+    this.facing = 1;
+    this.state = 'idle'; // idle | walk | attack | hurt | dead
+    this.stateTimer = 0;
+    this.invincible = 1.2;
+    this.onGround = false;
+  }
+  get cx() { return this.x + this.w/2; }
+  get cy() { return this.y + this.h/2; }
+  get foot() { return this.y + this.h; }
+
+  overlaps(other) {
+    return this.x < other.x+other.w && this.x+this.w > other.x &&
+           this.y < other.y+other.h && this.y+this.h > other.y;
+  }
+
+  applyGravity(dt) {
+    if (!this.onGround) this.vy += 1400 * dt;
+    this.y += this.vy * dt;
+    if (this.foot >= G.groundY) {
+      this.y = G.groundY - this.h;
+      this.vy = 0; this.onGround = true;
+    } else { this.onGround = false; }
+    this.x += this.vx * dt;
+    this.x = Math.max(0, Math.min(G.levelWidth - this.w, this.x));
+  }
+}
+
+class Player extends Entity {
+  constructor(x, y) {
+    super(x, y, 36, 52, '#E0E0E0');
+    this.hp = 100; this.maxHp = 100;
+    this.speed = 220;
+    this.attackTimer = 0;
+    this.attackCooldown = 0.22;
+    this.specialCooldown = 0;
+    this.specialMaxCooldown = 3;
+    this.dodgeCooldown = 0;
+    this.dodging = false;
+    this.dodgeTimer = 0;
+    this.attackActive = false;
+    this.attackHitbox = null;
+    this.animFrame = 0;
+    this.animTimer = 0;
+    this.glowColor = '#fff';
+    this.glowTimer = 0;
+    this.standActive = false;
+    this.standTimer = 0;
+    this.jumpCount = 0;
+    this.weapon = LEVELS[0].weapon;
+  }
+
+  update(dt, keys) {
+    // Timers
+    this.attackTimer = Math.max(0, this.attackTimer - dt);
+    this.specialCooldown = Math.max(0, this.specialCooldown - dt);
+    this.dodgeCooldown = Math.max(0, this.dodgeCooldown - dt);
+    this.invincible = Math.max(0, this.invincible - dt);
+    this.comboTimer = Math.max(0, (this.comboTimer||0) - dt);
+    this.glowTimer = Math.max(0, this.glowTimer - dt);
+    this.standTimer = Math.max(0, this.standTimer - dt);
+
+    if (this.state === 'hurt') {
+      this.stateTimer -= dt;
+      if (this.stateTimer <= 0) this.state = 'idle';
+    }
+    if (this.state === 'attack') {
+      this.stateTimer -= dt;
+      if (this.stateTimer <= 0) { this.state = 'idle'; this.attackActive = false; this.attackHitbox = null; }
+    }
+    if (this.dodging) {
+      if (!G.keys['Space']) { this.dodging = false; this.invincible = 0; }
+    }
+
+    // Movement
+    let moving = false;
+    if (this.state !== 'attack' && this.state !== 'hurt') {
+      if (keys['KeyA']||keys['ArrowLeft'])  { this.vx = -this.speed; this.facing = -1; moving = true; }
+      else if (keys['KeyD']||keys['ArrowRight']) { this.vx = this.speed; this.facing = 1; moving = true; }
+      else this.vx *= 0.7;
+
+      if (!moving) { if (this.state === 'walk') this.state = 'idle'; }
+      else { if (this.state === 'idle') this.state = 'walk'; }
+    } else {
+      this.vx *= 0.6;
+    }
+
+    this.applyGravity(dt);
+
+    // Anim
+    this.animTimer += dt;
+    if (this.animTimer > 0.12) { this.animFrame = (this.animFrame+1)%4; this.animTimer=0; }
+
+    this.standActive = this.standTimer > 0;
+  }
+
+  attack(enemies) {
+    if (this.attackTimer > 0) return;
+    this.attackTimer = this.attackCooldown;
+    this.state = 'attack'; this.stateTimer = 0.2;
+    this.attackActive = true;
+    this.glowTimer = 0.15; this.glowColor = '#FFD700';
+
+    const reach = 70, ry = this.y + 10;
+    this.attackHitbox = {
+      x: this.facing > 0 ? this.x+this.w : this.x-reach,
+      y: ry, w: reach, h: this.h-20
+    };
+
+    let hit = false;
+    const dmg = this.weapon ? this.weapon.dmg : 14;
+    enemies.forEach(e => {
+      if (!e.alive) return;
+      const hb = this.attackHitbox;
+      if (e.x < hb.x+hb.w && e.x+e.w > hb.x && e.y < hb.y+hb.h && e.y+e.h > hb.y) {
+        e.takeDamage(dmg + Math.floor(Math.random()*8));
+        hit = true;
+        spawnDmgNumber(e.cx, e.y, dmg + Math.floor(Math.random()*8), '#FFD700');
+        screenShake(4);
+        playSlash();
+      }
+    });
+    if (!hit) playSlash();
+  }
+
+  special(enemies) {
+    if (this.specialCooldown > 0) return;
+    this.specialCooldown = this.specialMaxCooldown;
+    this.standTimer = 0.5;
+    this.glowTimer = 0.5; this.glowColor = '#FF6600';
+    playSpecial();
+    screenShake(8);
+
+    const dmg = this.weapon ? this.weapon.specialDmg : 35;
+    enemies.forEach(e => {
+      if (!e.alive) return;
+      if (Math.abs(e.cx - this.cx) < 180) {
+        e.takeDamage(dmg + Math.floor(Math.random()*15));
+        spawnDmgNumber(e.cx, e.y-20, dmg, '#FF6600');
+      }
+    });
+
+    // spawn special effect particles
+    for (let i=0;i<12;i++) {
+      G.particles.push({
+        x: this.cx, y: this.cy,
+        vx: (Math.random()-0.5)*400, vy: Math.random()*-300-100,
+        life: 0.6, maxLife: 0.6,
+        color: ['#FF6600','#FFD700','#FF0000','#FFFFFF'][Math.floor(Math.random()*4)],
+        size: Math.random()*8+4
+      });
+    }
+
+    if (this.weapon) spawnFloatingText(this.cx, this.y-30, this.weapon.special, '#FF6600');
+  }
+
+  dodge() {
+    if (this.dodgeCooldown > 0 || this.dodging) return;
+    this.dodging = true;
+    this.dodgeTimer = 0.25;
+    this.dodgeCooldown = 0.8;
+    this.invincible = 0.3;
+    this.vx = this.facing * 400;
+    this.vy = -200;
+    playDodge();
+    this.glowTimer = 0.25; this.glowColor = '#00CCFF';
+  }
+
+  jump() {
+    if (this.jumpCount < 2) {
+      this.vy = -600;
+      this.jumpCount++;
+      this.onGround = false;
+      playSound('sine', 400, 0.08, 0.2);
+    }
+  }
+
+  takeDamage(dmg) {
+    if (this.invincible > 0) return;
+    this.hp = Math.max(0, this.hp - dmg);
+    this.invincible = 0.5;
+    this.state = 'hurt'; this.stateTimer = 0.18;
+    this.vx = -this.facing * 150;
+    screenShake(6);
+    playHit();
+    flashScreen();
+    updateHUD();
+    if (this.hp <= 0) gameOver();
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(Math.floor(this.x - G.cameraX), Math.floor(this.y));
+
+    if (this.invincible > 0 && Math.floor(Date.now()/50)%2) {
+      ctx.restore(); return;
+    }
+
+    const s = this.w; const h = this.h;
+    const glow = this.glowTimer > 0;
+
+    if (glow) {
+      ctx.shadowBlur = 20; ctx.shadowColor = this.glowColor;
+    }
+    if (this.standActive) {
+      ctx.shadowBlur = 30; ctx.shadowColor = '#FF6600';
+      // Stand aura
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#FF6600';
+      ctx.fillRect(-10, -10, s+20, h+20);
+      ctx.globalAlpha = 1;
+    }
+
+    const flip = this.facing < 0 ? -1 : 1;
+    ctx.scale(flip, 1);
+    const ox = flip < 0 ? -s : 0;
+
+    // Body (pixel skeleton)
+    // Head
+    ctx.fillStyle = '#E8E8E8';
+    ctx.fillRect(ox+8, 0, 20, 18);
+    // Eye sockets
+    ctx.fillStyle = this.standActive ? '#FF6600' : '#222';
+    ctx.fillRect(ox+11, 5, 5, 5);
+    ctx.fillRect(ox+20, 5, 5, 5);
+    // Mouth (zig zag)
+    ctx.fillStyle = '#222';
+    ctx.fillRect(ox+11, 13, 2, 3); ctx.fillRect(ox+15, 13, 2, 3); ctx.fillRect(ox+19, 13, 2, 3);
+    // Neck
+    ctx.fillStyle = '#D0D0D0';
+    ctx.fillRect(ox+14, 18, 8, 4);
+    // Torso
+    ctx.fillStyle = this.state === 'attack' ? '#FFD700' : '#C8C8C8';
+    ctx.fillRect(ox+6, 22, 24, 18);
+    // Ribs
+    ctx.fillStyle = '#555';
+    for (let r=0;r<3;r++) { ctx.fillRect(ox+8, 24+r*5, 20, 2); }
+    // Arms
+    const armY = this.state === 'attack' ? -4 : 0;
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(ox+0, 22+armY, 7, 16); // left arm
+    ctx.fillRect(ox+29, 22+armY, 7, 16); // right arm
+    // Weapon in hand
+    if (this.weapon) {
+      ctx.fillStyle = '#8B4513';
+      if (this.weapon.name === 'MACUAHUITL') {
+        ctx.fillRect(ox+32, 16+armY, 5, 24);
+        ctx.fillStyle = '#333'; ctx.fillRect(ox+33, 16+armY, 3, 2);
+        ctx.fillRect(ox+33, 20+armY, 3, 2); ctx.fillRect(ox+33, 24+armY, 3, 2);
+      } else if (this.weapon.name === 'ESPADA') {
+        ctx.fillStyle = '#CCC'; ctx.fillRect(ox+33, 10+armY, 3, 28);
+        ctx.fillStyle = '#8B4513'; ctx.fillRect(ox+31, 22+armY, 7, 4);
+      } else if (this.weapon.name === 'RIFLE') {
+        ctx.fillStyle = '#555'; ctx.fillRect(ox+32, 20+armY, 4, 18);
+        ctx.fillStyle = '#333'; ctx.fillRect(ox+33, 14+armY, 3, 8);
+      }
+    }
+    // Hips + legs
+    ctx.fillStyle = '#B0B0B0';
+    ctx.fillRect(ox+8, 40, 20, 6);
+    const legOff = this.state === 'walk' ? Math.sin(Date.now()/100)*5 : 0;
+    ctx.fillStyle = '#C0C0C0';
+    ctx.fillRect(ox+8, 46, 9, 16+legOff); // left leg
+    ctx.fillRect(ox+19, 46, 9, 16-legOff); // right leg
+    // Feet
+    ctx.fillStyle = '#A0A0A0';
+    ctx.fillRect(ox+6, 62+legOff, 12, 4); ctx.fillRect(ox+17, 62-legOff, 12, 4);
+
+    // Special dodge effect
+    if (this.dodging) {
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = '#00CCFF';
+      ctx.fillRect(ox-5, -5, s+10, h+10);
+      ctx.globalAlpha = 1;
+    }
+
+    // Attack hitbox visual
+    if (this.attackActive && this.attackHitbox) {
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#FFD700';
+      const hb = this.attackHitbox;
+      ctx.fillRect(hb.x - this.x - (G.cameraX ? 0 : 0), 10, hb.w, hb.h);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+}
+
+class Enemy extends Entity {
+  constructor(x, y, type, color, lvlData) {
+    super(x, y, 32, 48, color);
+    this.type = type; this.lvlData = lvlData;
+    this.hp = 60 + G.currentLevel * 15;
+    this.maxHp = this.hp;
+    this.speed = 70 + Math.random()*40 + G.currentLevel*8;
+    this.attackRange = 55;
+    this.attackTimer = 0;
+    this.attackCooldown = 1.4 - G.currentLevel*0.05;
+    this.dmg = 6 + G.currentLevel * 1;
+    this.aiState = 'approach';
+    this.idleTimer = Math.random() * 2;
+    this.hurtTimer = 0;
+    this.animFrame = 0; this.animTimer = 0;
+    this.deathTimer = -1;
+  }
+
+  update(dt, player) {
+    if (!this.alive) {
+      if (this.deathTimer >= 0) { this.deathTimer -= dt; }
+      return;
+    }
+    this.attackTimer = Math.max(0, this.attackTimer - dt);
+    this.hurtTimer = Math.max(0, this.hurtTimer - dt);
+
+    const dx = player.cx - this.cx;
+    const dist = Math.abs(dx);
+    this.facing = dx > 0 ? 1 : -1;
+
+    if (this.hurtTimer > 0) { this.vx *= 0.7; }
+    else if (dist > this.attackRange + 10) {
+      this.vx = this.facing * this.speed;
+      this.state = 'walk';
+    } else {
+      this.vx *= 0.8;
+      this.state = 'idle';
+      if (this.attackTimer <= 0) {
+        this.doAttack(player);
+      }
+    }
+    this.animTimer += dt;
+    if (this.animTimer > 0.15) { this.animFrame=(this.animFrame+1)%4; this.animTimer=0; }
+    this.applyGravity(dt);
+  }
+
+  doAttack(player) {
+    this.attackTimer = this.attackCooldown;
+    this.state = 'attack';
+    if (!player.invincible && !player.dodging && Math.abs(player.cx-this.cx)<this.attackRange+20) {
+      player.takeDamage(this.dmg);
+    }
+    playHit();
+  }
+
+  takeDamage(dmg) {
+    if (!this.alive) return;
+    this.hp -= dmg; this.hurtTimer = 0.25;
+    this.state = 'hurt';
+    this.vx = -this.facing * 120;
+    G.combo++;
+    G.comboTimer = 2;
+    updateCombo();
+    if (this.hp <= 0) this.die();
+  }
+
+  die() {
+    this.alive = false; this.deathTimer = 0.5;
+    G.enemiesKilled++;
+    playBossHit();
+    for (let i=0;i<8;i++) {
+      G.particles.push({
+        x: this.cx, y: this.cy,
+        vx: (Math.random()-0.5)*300, vy: Math.random()*-250-50,
+        life: 0.8, maxLife: 0.8,
+        color: this.color, size: Math.random()*6+3
+      });
+    }
+    spawnDmgNumber(this.cx, this.y, 'K.O.!', '#FF0000');
+    updateHUD();
+  }
+
+  draw() {
+    const screenX = Math.floor(this.x - G.cameraX);
+    if (screenX + this.w < -50 || screenX > canvas.width + 50) return;
+
+    ctx.save();
+    ctx.translate(screenX, Math.floor(this.y));
+
+    if (!this.alive && this.deathTimer >= 0) {
+      ctx.globalAlpha = this.deathTimer / 0.5;
+    }
+    if (this.hurtTimer > 0 && Math.floor(Date.now()/50)%2) {
+      ctx.restore(); return;
+    }
+
+    const w = this.w, h = this.h;
+    const flip = this.facing < 0 ? -1 : 1;
+    ctx.scale(flip, 1);
+    const ox = flip < 0 ? -w : 0;
+
+    // Draw enemy based on type
+    ctx.fillStyle = this.color;
+    // Body
+    ctx.fillRect(ox+4, 12, 24, 20);
+    // Head
+    ctx.fillStyle = this.hurtTimer>0 ? '#FF4444' : this.color;
+    ctx.fillRect(ox+6, 0, 20, 14);
+    // Eyes
+    ctx.fillStyle = '#FF0000';
+    ctx.fillRect(ox+9, 3, 4, 4);
+    ctx.fillRect(ox+17, 3, 4, 4);
+    // Type-specific details
+    if (this.type === 'guerrero') {
+      // Feather headdress
+      ctx.fillStyle = '#FF6600';
+      ctx.fillRect(ox+4, -6, 4, 8); ctx.fillRect(ox+10, -8, 4, 10);
+      ctx.fillRect(ox+18, -8, 4, 10); ctx.fillRect(ox+24, -6, 4, 8);
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(ox+14, -10, 4, 12);
+      // Shield
+      ctx.fillStyle = '#8B4513'; ctx.fillRect(ox-6, 16, 10, 14);
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(ox-4, 18, 6, 10);
+    } else if (this.type === 'conquistador') {
+      // Helmet
+      ctx.fillStyle = '#999'; ctx.fillRect(ox+5, -4, 22, 8);
+      ctx.fillRect(ox+4, -2, 24, 4);
+      // Cross on chest
+      ctx.fillStyle = '#CC0000';
+      ctx.fillRect(ox+13, 14, 4, 14); ctx.fillRect(ox+9, 18, 12, 4);
+    } else if (this.type === 'realista') {
+      // Bicorne hat
+      ctx.fillStyle = '#222; ';
+      ctx.fillStyle = '#111'; ctx.fillRect(ox+2, -8, 28, 10);
+      ctx.fillRect(ox+5, -4, 22, 6);
+      // Coat
+      ctx.fillStyle = '#8B0000'; ctx.fillRect(ox+2, 12, 4, 18); ctx.fillRect(ox+26, 12, 4, 18);
+    } else if (this.type === 'conservador') {
+      // Top hat
+      ctx.fillStyle = '#222'; ctx.fillRect(ox+8, -10, 16, 4);
+      ctx.fillRect(ox+10, -16, 12, 8);
+      // Monocle
+      ctx.strokeStyle = '#FFD700'; ctx.lineWidth=2;
+      ctx.strokeRect(ox+17, 4, 6, 6);
+    } else if (this.type === 'porfirista') {
+      // Military cap
+      ctx.fillStyle = '#336633'; ctx.fillRect(ox+4, -6, 24, 8);
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(ox+8, -3, 16, 3);
+      // Medals
+      ctx.fillStyle = '#FFD700';
+      for(let m=0;m<3;m++) ctx.fillRect(ox+6+m*6, 14, 4, 4);
+    } else if (this.type === 'priista') {
+      // Green tie
+      ctx.fillStyle = '#006600'; ctx.fillRect(ox+13, 14, 6, 14);
+      // Suit
+      ctx.fillStyle = '#333'; ctx.fillRect(ox+4, 14, 7, 18); ctx.fillRect(ox+21, 14, 7, 18);
+    } else if (this.type === 'filosofo') {
+      // Toga
+      ctx.fillStyle = '#EEE'; ctx.fillRect(ox+0, 12, 32, 22);
+      ctx.fillStyle = '#CCC'; ctx.fillRect(ox+2, 14, 6, 18);
+      // Beard
+      ctx.fillStyle = '#888'; ctx.fillRect(ox+8, 10, 16, 8);
+    }
+    // Legs
+    ctx.fillStyle = this.color;
+    const legO = this.state==='walk'?Math.sin(Date.now()/90)*4:0;
+    ctx.fillRect(ox+6, 32, 9, 16+legO);
+    ctx.fillRect(ox+17, 32, 9, 16-legO);
+    // HP bar
+    if (this.hp < this.maxHp) {
+      ctx.fillStyle = '#333'; ctx.fillRect(ox+0, -14, w, 4);
+      ctx.fillStyle = this.hp/this.maxHp > 0.5 ? '#0F0' : this.hp/this.maxHp > 0.25 ? '#FF0' : '#F00';
+      ctx.fillRect(ox+0, -14, w*(this.hp/this.maxHp), 4);
+    }
+    ctx.restore();
+  }
+}
+
+class Boss extends Entity {
+  constructor(x, y, lvlData) {
+    super(x, y, 56, 72, lvlData.bossColor);
+    this.lvlData = lvlData;
+    this.hp = 200 + G.currentLevel * 60;
+    this.maxHp = this.hp;
+    this.speed = 100 + G.currentLevel*5;
+    this.attackRange = 80;
+    this.attackTimer = 0;
+    this.attackCooldown = 1.0;
+    this.dmg = 10 + G.currentLevel * 2;
+    this.phase2 = false;
+    this.specialTimer = 0;
+    this.specialCooldown = 5;
+    this.hurtTimer = 0;
+    this.animFrame = 0; this.animTimer = 0;
+    this.introShown = false;
+    this.isBoss = true;
+    this.jumpTimer = 0;
+  }
+
+  update(dt, player) {
+    if (!this.alive) return;
+    this.attackTimer = Math.max(0, this.attackTimer-dt);
+    this.specialTimer = Math.max(0, this.specialTimer-dt);
+    this.hurtTimer = Math.max(0, this.hurtTimer-dt);
+    this.jumpTimer = Math.max(0, this.jumpTimer-dt);
+
+    if (this.hp < this.maxHp * 0.4 && !this.phase2) {
+      this.phase2 = true;
+      this.speed *= 1.4;
+      this.attackCooldown *= 0.7;
+      spawnFloatingText(this.cx, this.y-40, '⚠ FASE 2 ⚠', '#FF0000');
+      screenShake(12);
+    }
+
+    const dx = player.cx - this.cx;
+    const dist = Math.abs(dx);
+    this.facing = dx > 0 ? 1 : -1;
+
+    if (this.hurtTimer > 0) { this.vx *= 0.6; }
+    else if (dist > this.attackRange + 20) {
+      this.vx = this.facing * this.speed;
+    } else {
+      this.vx *= 0.8;
+      if (this.attackTimer <= 0) this.doAttack(player);
+    }
+
+    // Special: boss jumps and crashes
+    if (this.specialTimer <= 0 && this.onGround) {
+      this.specialTimer = this.specialCooldown;
+      this.vy = -700;
+      this.onGround = false;
+      playSpecial();
+    }
+    // Land crash
+    if (this.onGround && this.jumpTimer <= 0 && !this.phase2) {
+      this.jumpTimer = 2; // don't re-check immediately
+    } else if (this.onGround && this.jumpTimer <= 0) {
+      // land shockwave
+      if (Math.abs(player.cy - this.cy) < 120) player.takeDamage(this.dmg/2);
+      screenShake(8);
+      this.jumpTimer = 1;
+    }
+
+    this.animTimer += dt; if (this.animTimer > 0.12) { this.animFrame=(this.animFrame+1)%4; this.animTimer=0; }
+    this.applyGravity(dt);
+
+    // Update boss bar
+    const fill = document.getElementById('bossHpFill');
+    if (fill) fill.style.width = Math.max(0, this.hp/this.maxHp*100)+'%';
+  }
+
+  doAttack(player) {
+    this.attackTimer = this.attackCooldown;
+    if (!player.invincible && !player.dodging && Math.abs(player.cx-this.cx) < this.attackRange+30) {
+      const dmg = this.phase2 ? this.dmg*1.5 : this.dmg;
+      player.takeDamage(dmg);
+    }
+    screenShake(5);
+  }
+
+  takeDamage(dmg) {
+    if (!this.alive) return;
+    this.hp -= dmg; this.hurtTimer = 0.2;
+    this.vx = -this.facing * 80;
+    G.combo++; G.comboTimer = 2; updateCombo();
+    playBossHit();
+    if (this.hp <= 0) this.die();
+    else if (G.currentLevel === 6 && Math.random() < 0.3) {
+      const q = SOCRATES_QUOTES[Math.floor(Math.random()*SOCRATES_QUOTES.length)];
+      showDialogue('SÓCRATES', q, 2.5);
+    }
+  }
+
+  die() {
+    this.alive = false;
+    screenShake(20);
+    playLevelUp();
+    for (let i=0;i<30;i++) {
+      G.particles.push({
+        x: this.cx, y: this.cy,
+        vx: (Math.random()-0.5)*500, vy: Math.random()*-400-100,
+        life: 1.5, maxLife: 1.5,
+        color: ['#FFD700','#FF6600','#FF0000','#FFFFFF','#00FFCC'][Math.floor(Math.random()*5)],
+        size: Math.random()*12+6
+      });
+    }
+    setTimeout(() => {
+      if (LEVELS[G.currentLevel].isFinal) {
+        showScreen('winScreen');
+        G.state = 'win';
+      } else {
+        nextLevel();
+      }
+    }, 1800);
+  }
+
+  draw() {
+    const sx = Math.floor(this.x - G.cameraX), sy = Math.floor(this.y);
+    if (sx+this.w<-50||sx>canvas.width+50) return;
+    ctx.save();
+    ctx.translate(sx, sy);
+
+    if (this.hurtTimer>0 && Math.floor(Date.now()/40)%2) { ctx.restore(); return; }
+
+    const w=this.w, h=this.h;
+    const pulse = this.phase2 ? (Math.sin(Date.now()/100)*0.3+0.7) : 1;
+    ctx.shadowBlur = 20*pulse; ctx.shadowColor = this.color;
+
+    const flip = this.facing < 0 ? -1 : 1;
+    ctx.scale(flip, 1); const ox = flip<0?-w:0;
+
+    // BOSS BODY - larger, more dramatic
+    ctx.fillStyle = this.color;
+    ctx.fillRect(ox+6, 18, 44, 30);
+    // Head
+    ctx.fillStyle = this.phase2 ? '#FF0000' : this.color;
+    ctx.fillRect(ox+10, 0, 36, 22);
+    // Eyes glow
+    const eyeColor = this.phase2 ? '#FFFFFF' : '#FF0000';
+    ctx.fillStyle = eyeColor;
+    ctx.shadowBlur = 10; ctx.shadowColor = eyeColor;
+    ctx.fillRect(ox+14, 5, 7, 7); ctx.fillRect(ox+31, 5, 7, 7);
+    ctx.shadowBlur = 0;
+
+    if (G.currentLevel === 6) {
+      // SÓCRATES - toga + laurel + beard
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(ox+0, 18, 56, 36);
+      ctx.fillStyle = '#CCC'; ctx.fillRect(ox+2, 20, 10, 32); ctx.fillRect(ox+44, 20, 10, 32);
+      // Laurel wreath
+      ctx.fillStyle = '#006600';
+      for(let l=0;l<8;l++) {
+        ctx.fillRect(ox+10+l*4, -6+Math.sin(l)*3, 6, 10);
+      }
+      // Beard
+      ctx.fillStyle = '#888'; ctx.fillRect(ox+12, 16, 32, 12);
+      ctx.fillStyle = '#666';
+      for(let b=0;b<5;b++) ctx.fillRect(ox+12+b*6, 20, 4, 16);
+      // Toga trim
+      ctx.fillStyle = '#FFD700'; ctx.fillRect(ox+0, 48, 56, 4);
+      // Scroll
+      ctx.fillStyle = '#DDD'; ctx.fillRect(ox+50, 22, 10, 20);
+      ctx.fillStyle = '#888'; ctx.fillRect(ox+51, 24, 8, 2); ctx.fillRect(ox+51, 28, 8, 2); ctx.fillRect(ox+51, 32, 8, 2);
+    } else {
+      // Generic boss type details
+      ctx.fillStyle = this.lvlData.bossColor;
+      // Cape
+      ctx.globalAlpha = 0.7;
+      ctx.fillRect(ox-6, 10, 68, 50);
+      ctx.globalAlpha = 1;
+      // Crown
+      ctx.fillStyle = '#FFD700';
+      ctx.fillRect(ox+8, -8, 8, 10); ctx.fillRect(ox+22, -12, 8, 14); ctx.fillRect(ox+36, -8, 8, 10);
+    }
+
+    // Legs
+    ctx.fillStyle = this.color;
+    const lO = this.state==='walk'?Math.sin(Date.now()/80)*6:0;
+    ctx.fillRect(ox+10, 48, 16, 24+lO); ctx.fillRect(ox+30, 48, 16, 24-lO);
+
+    // Phase 2 aura
+    if (this.phase2) {
+      ctx.globalAlpha = 0.15 + Math.sin(Date.now()/200)*0.1;
+      ctx.fillStyle = '#FF0000';
+      ctx.fillRect(ox-12, -12, w+24, h+24);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+}
+
+// ============================================================
+//  BACKGROUND RENDERER
+// ============================================================
+function drawBackground() {
+  const lvl = LEVELS[G.currentLevel];
+  const W = canvas.width, H = canvas.height;
+
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+  skyGrad.addColorStop(0, lvl.skyColor);
+  skyGrad.addColorStop(1, lvl.bg[0]);
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  const camX = G.cameraX;
+
+  // Stars (for dark levels)
+  if (G.currentLevel >= 3) {
+    ctx.fillStyle = '#FFF';
+    for (let s=0;s<80;s++) {
+      const sx = ((s*173+37)%1600) - camX*0.1;
+      const sy = (s*47+13)%200;
+      if (sx>-2&&sx<W+2) {
+        const blink = Math.sin(Date.now()/500+s*1.3) > 0.5 ? 1 : 0.4;
+        ctx.globalAlpha = blink * 0.6;
+        ctx.fillRect(sx%W, sy, 2, 2);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Parallax mountains / buildings (2 layers)
+  const mx = -camX*0.3;
+  ctx.fillStyle = lvl.bg[1] || '#333';
+  for (let i=0;i<10;i++) {
+    const bx = (i*180 + mx)%1800 - 100;
+    const bh = 80 + (i*37%80);
+    if (G.currentLevel <= 1) {
+      // pyramids
+      ctx.beginPath(); ctx.moveTo(bx, G.groundY);
+      ctx.lineTo(bx+90, G.groundY-bh); ctx.lineTo(bx+180, G.groundY);
+      ctx.closePath(); ctx.fill();
+    } else if (G.currentLevel <= 3) {
+      // church silhouettes
+      ctx.fillRect(bx+20, G.groundY-bh, 60, bh);
+      ctx.fillRect(bx+40, G.groundY-bh-30, 20, 32);
+    } else if (G.currentLevel <= 5) {
+      // buildings
+      ctx.fillRect(bx, G.groundY-bh, 70, bh);
+      ctx.fillRect(bx+80, G.groundY-bh/2-20, 50, bh/2+20);
+    } else {
+      // alien/cosmic columns
+      ctx.fillStyle = lvl.bossColor || '#440044';
+      ctx.fillRect(bx+30, G.groundY-bh-20, 20, bh+20);
+      ctx.fillRect(bx+30, G.groundY-bh-30, 20, 14);
+    }
+    ctx.fillStyle = lvl.bg[1] || '#333';
+  }
+
+  // Ground
+  const groundGrad = ctx.createLinearGradient(0, G.groundY, 0, H);
+  groundGrad.addColorStop(0, lvl.groundColor);
+  groundGrad.addColorStop(1, '#111');
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, G.groundY, W, H-G.groundY);
+
+  // Ground detail tiles
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  for (let t=0;t<40;t++) {
+    const tx = (t*40 - camX*0.8)%1600;
+    if (tx>-2&&tx<W+2) ctx.fillRect(tx, G.groundY, 36, 2);
+  }
+
+  // Level-specific decorations
+  drawLevelDecos(camX);
+}
+
+function drawLevelDecos(camX) {
+  const lvl = LEVELS[G.currentLevel];
+  ctx.save();
+  switch(G.currentLevel) {
+    case 0: // Tenochtitlán - torches, temple
+      ctx.fillStyle = '#FFD700';
+      for(let t=0;t<5;t++) {
+        const tx = (t*300 - camX)%(1600) + 50;
+        if(tx>0&&tx<canvas.width) {
+          ctx.fillRect(tx, G.groundY-80, 8, 80);
+          ctx.fillStyle='#FF6600'; ctx.fillRect(tx-4, G.groundY-85, 16, 10);
+          ctx.fillStyle='#FFD700';
+        }
+      }
+      break;
+    case 2: // Independencia - lampposts
+      ctx.fillStyle = '#888';
+      for(let p=0;p<5;p++) {
+        const px = (p*320-camX)%1600+80;
+        if(px>0&&px<canvas.width) {
+          ctx.fillRect(px, G.groundY-100, 6, 100);
+          ctx.fillStyle='#FFEE88';ctx.shadowBlur=12;ctx.shadowColor='#FFEE88';
+          ctx.fillRect(px-10, G.groundY-108, 22, 12);
+          ctx.shadowBlur=0; ctx.fillStyle='#888';
+        }
+      }
+      break;
+    case 4: // Revolución - cactus
+      ctx.fillStyle = '#226622';
+      for(let c=0;c<6;c++) {
+        const cx2 = (c*250-camX*0.9)%1600+60;
+        if(cx2>0&&cx2<canvas.width) {
+          ctx.fillRect(cx2, G.groundY-60, 12, 60);
+          ctx.fillRect(cx2-16, G.groundY-30, 16, 10);
+          ctx.fillRect(cx2+12, G.groundY-40, 16, 10);
+        }
+      }
+      break;
+    case 6: // Final - cosmic portals
+      for(let p=0;p<3;p++) {
+        const px = (p*500-camX*0.5)%1600+100;
+        if(px>0&&px<canvas.width) {
+          ctx.strokeStyle='#AA00FF'; ctx.lineWidth=3;
+          ctx.shadowBlur=20; ctx.shadowColor='#AA00FF';
+          ctx.beginPath(); ctx.ellipse(px, G.groundY-80, 30, 60, 0, 0, Math.PI*2); ctx.stroke();
+          ctx.shadowBlur=0;
+        }
+      }
+      break;
+  }
+  ctx.restore();
+}
+
+// ============================================================
+//  PARTICLES
+// ============================================================
+function updateParticles(dt) {
+  G.particles = G.particles.filter(p => {
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    p.vy += 300*dt; p.life -= dt;
+    return p.life > 0;
+  });
+}
+
+function drawParticles() {
+  G.particles.forEach(p => {
+    const a = p.life/p.maxLife;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 8; ctx.shadowColor = p.color;
+    ctx.fillRect(Math.floor(p.x-G.cameraX-p.size/2), Math.floor(p.y-p.size/2), p.size, p.size);
+    ctx.restore();
+  });
+}
+
+// ============================================================
+//  FLOATING TEXT / DMG NUMBERS
+// ============================================================
+function spawnDmgNumber(wx, wy, text, color) {
+  const el = document.createElement('div');
+  el.className = 'dmgNumber';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.left = (wx - G.cameraX - 20) + 'px';
+  el.style.top = (wy - 10) + 'px';
+  document.getElementById('gameContainer').appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+function spawnFloatingText(wx, wy, text, color) {
+  spawnDmgNumber(wx, wy, text, color);
+}
+
+// ============================================================
+//  SCREEN FX
+// ============================================================
+function screenShake(intensity) {
+  const gc = document.getElementById('gameContainer');
+  gc.style.transform = `translate(${(Math.random()-0.5)*intensity}px,${(Math.random()-0.5)*intensity}px)`;
+  setTimeout(() => {
+    gc.style.transform = `translate(${(Math.random()-0.5)*intensity/2}px,${(Math.random()-0.5)*intensity/2}px)`;
+  }, 60);
+  setTimeout(() => gc.style.transform = '', 120);
+}
+
+function flashScreen() {
+  const flash = document.getElementById('hitFlash');
+  flash.style.background = 'rgba(255,255,255,0.3)';
+  setTimeout(() => flash.style.background = '', 80);
+}
+
+// ============================================================
+//  HUD
+// ============================================================
+function updateHUD() {
+  const p = G.player;
+  if (!p) return;
+  const pct = (p.hp/p.maxHp*100)+'%';
+  document.getElementById('hpBar').style.width = pct;
+  document.getElementById('hpBar').style.background =
+    p.hp > p.maxHp*0.5 ? 'var(--green)' : p.hp > p.maxHp*0.25 ? '#FF8800' : 'var(--red)';
+  document.getElementById('hpVal').textContent = p.hp;
+  document.getElementById('hpMax').textContent = p.maxHp;
+  document.getElementById('enemyCount').textContent = G.enemies.filter(e=>e.alive).length;
+  const w = p.weapon;
+  document.getElementById('weaponIcon').textContent = w ? w.icon : '🦴';
+  document.getElementById('weaponName').textContent = w ? w.name : 'HUESOS';
+  document.getElementById('levelName').textContent = LEVELS[G.currentLevel]?.name || '';
+}
+
+function updateCombo() {
+  const cd = document.getElementById('comboDisplay');
+  if (G.combo > 1) {
+    cd.textContent = `✦ COMBO x${G.combo} ✦`;
+    cd.style.color = G.combo > 8 ? '#FF0000' : G.combo > 4 ? '#FF6600' : '#FFD700';
+  } else cd.textContent = '';
+}
+
+// ============================================================
+//  DIALOGUE SYSTEM
+// ============================================================
+let dialogueTimeout = null;
+function showDialogue(name, text, duration = 4) {
+  const box = document.getElementById('dialogueBox');
+  document.getElementById('dialogueName').textContent = name;
+  document.getElementById('dialogueText').textContent = text;
+  box.classList.add('active');
+  clearTimeout(dialogueTimeout);
+  dialogueTimeout = setTimeout(() => box.classList.remove('active'), duration * 1000);
+}
+
+function dismissDialogue() {
+  document.getElementById('dialogueBox').classList.remove('active');
+}
+
+// ============================================================
+//  LEVEL SETUP
+// ============================================================
+function setupLevel(levelIdx) {
+  const lvl = LEVELS[levelIdx];
+  G.currentLevel = levelIdx;
+  G.enemies = [];
+  G.particles = [];
+  G.bossSpawned = false;
+  G.bossDefeated = false;
+  G.enemiesKilled = 0;
+  G.enemiesNeeded = 5 + levelIdx;
+  G.phase = 'enemies';
+  G.combo = 0;
+  G.comboTimer = 0;
+  G.levelWidth = 1600;
+  G.groundY = Math.floor(canvas.height * 0.72);
+
+  const pStartX = 80;
+  if (!G.player) {
+    G.player = new Player(pStartX, G.groundY - 60);
+  } else {
+    G.player.x = pStartX;
+    G.player.y = G.groundY - 60;
+    G.player.vx = 0; G.player.vy = 0;
+    G.player.jumpCount = 0;
+  }
+
+  if (lvl.weapon) G.player.weapon = lvl.weapon;
+
+  // Spawn initial enemies
+  for (let i=0;i<3;i++) spawnEnemy();
+
+  // Boss bar
+  const bossBar = document.getElementById('bossHpContainer');
+  bossBar.classList.remove('active');
+
+  updateHUD();
+
+  // Sócrates intro quote for certain levels
+  if (levelIdx === 6) {
+    setTimeout(() => showDialogue('SÓCRATES', '¡Por fin llegaste, esqueleto ignorante! Yo, Sócrates, he mejorado la historia de México con FILOSOFÍA GRIEGA.', 5), 1000);
+  }
+}
+
+function spawnEnemy() {
+  const lvl = LEVELS[G.currentLevel];
+  const side = Math.random() > 0.5 ? 1 : -1;
+  const ex = side > 0 ? G.player.x + 500 + Math.random()*300 : G.player.x - 500 - Math.random()*300;
+  const clampedX = Math.max(100, Math.min(G.levelWidth-100, ex));
+  const e = new Enemy(clampedX, G.groundY-52, lvl.enemyType, lvl.enemyColor, lvl);
+  G.enemies.push(e);
+}
+
+function spawnBoss() {
+  const lvl = LEVELS[G.currentLevel];
+  G.bossSpawned = true;
+  G.phase = 'boss';
+  const bx = G.player.x > G.levelWidth/2 ? 200 : G.levelWidth-300;
+  const boss = new Boss(bx, G.groundY-78, lvl);
+  G.enemies.push(boss);
+  // Boss HUD
+  document.getElementById('bossHpContainer').classList.add('active');
+  document.getElementById('bossName').textContent = lvl.bossName;
+  document.getElementById('bossHpFill').style.width = '100%';
+  screenShake(15);
+  showDialogue(lvl.bossName, getBossIntroLine(G.currentLevel), 4);
+  playLevelUp();
+}
+
+function getBossIntroLine(lvlIdx) {
+  const lines = [
+    '¡Los dioses del agua te destruirán, esqueleto!',
+    '¡En nombre de España y la Santa Inquisición!',
+    '¡Las colonias jamás serán libres mientras yo exista!',
+    '¡El Imperio de México es eterno y glorioso!',
+    '¡El orden y el progreso son míos! ¡La Paz por la Fuerza!',
+    '¡El sistema nunca muere, muchacho!',
+    '¡Solo sé que no sé nada... pero SÉ que eres mi enemigo!'
+  ];
+  return lines[lvlIdx] || '¡Prepárate para luchar!';
+}
+
+// ============================================================
+//  GAME LOOP
+// ============================================================
+function gameLoop(timestamp) {
+  if (G.state !== 'playing') {
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+  const dt = Math.min((timestamp - G.lastTime) / 1000, 0.05);
+  G.lastTime = timestamp;
+
+  // Combo decay
+  if (G.comboTimer > 0) {
+    G.comboTimer -= dt;
+    if (G.comboTimer <= 0) { G.combo = 0; updateCombo(); }
+  }
+
+  // Sócrates random quotes in final level
+  if (G.currentLevel === 6 && G.bossSpawned) {
+    G.socratesQuoteTimer -= dt;
+    if (G.socratesQuoteTimer <= 0) {
+      G.socratesQuoteTimer = 8 + Math.random()*6;
+      const q = SOCRATES_QUOTES[Math.floor(Math.random()*SOCRATES_QUOTES.length)];
+      showDialogue('SÓCRATES', q, 3);
+    }
+  }
+
+  // Spawn more enemies if needed
+  if (G.phase === 'enemies') {
+    const alive = G.enemies.filter(e=>e.alive&&!e.isBoss).length;
+    if (alive < 2 && G.enemiesKilled < G.enemiesNeeded) {
+      spawnEnemy();
+    }
+    if (G.enemiesKilled >= G.enemiesNeeded && !G.bossSpawned) {
+      spawnBoss();
+    }
+  }
+
+  // Update player
+  G.player.update(dt, G.keys);
+
+  // Update enemies
+  G.enemies.forEach(e => {
+    if (e.isBoss) e.update(dt, G.player);
+    else e.update(dt, G.player);
+  });
+  G.enemies = G.enemies.filter(e => e.alive || (e.deathTimer >= 0));
+
+  // Camera
+  const targetCamX = G.player.x - canvas.width/2 + G.player.w/2;
+  G.cameraX += (targetCamX - G.cameraX) * 0.12;
+  G.cameraX = Math.max(0, Math.min(G.levelWidth - canvas.width, G.cameraX));
+
+  // Update particles
+  updateParticles(dt);
+
+  // ---- DRAW ----
+  drawBackground();
+  drawParticles();
+  G.enemies.forEach(e => e.draw());
+  G.player.draw();
+
+  // ---- CROSSHAIR / attack indicator ----
+  if (G.player.attackActive && G.player.attackHitbox) {
+    const hb = G.player.attackHitbox;
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(hb.x - G.cameraX, hb.y, hb.w, hb.h);
+    ctx.restore();
+  }
+
+  // Update HUD counters
+  document.getElementById('enemyCount').textContent = G.enemies.filter(e=>e.alive).length;
+
+  // Dodge CD indicator
+  if (G.player.specialCooldown > 0) {
+    const pct = 1 - G.player.specialCooldown/G.player.specialMaxCooldown;
+    ctx.fillStyle = 'rgba(255,100,0,0.8)';
+    ctx.fillRect(10, canvas.height-24, pct*100, 6);
+    ctx.strokeStyle='#FF6600'; ctx.strokeRect(10, canvas.height-24, 100, 6); ctx.lineWidth=1;
+    ctx.fillStyle='#888'; ctx.font='8px "Press Start 2P"';
+    ctx.fillText('ESPECIAL', 116, canvas.height-18);
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ============================================================
+//  INPUT
+// ============================================================
+let attackKeyHeld = false;
+document.addEventListener('keydown', (e) => {
+  G.keys[e.code] = true;
+  if (G.state === 'playing') {
+    if ((e.code === 'KeyP' || e.code === 'KeyJ') && !attackKeyHeld) {
+      attackKeyHeld = true;
+      G.player.attack(G.enemies);
+    }
+    if (e.code === 'KeyX' || e.code === 'KeyK') G.player.special(G.enemies);
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (G.dialogueActive || document.getElementById('dialogueBox').classList.contains('active')) {
+        dismissDialogue();
+      } else {
+        G.player.dodging = true;
+        G.player.invincible = 99;
+      }
+    }
+    if ((e.code === 'KeyW' || e.code === 'ArrowUp') && G.player.onGround) {
+      G.player.jump();
+    }
+  }
+  if (e.code === 'Space' && G.state === 'dialogue') e.preventDefault();
+});
+
+document.addEventListener('keyup', (e) => {
+  G.keys[e.code] = false;
+  if (e.code === 'Space') { G.player.dodging = false; G.player.invincible = 0; }
+  if (e.code === 'KeyZ' || e.code === 'KeyJ') attackKeyHeld = false;
+      attackKeyHeld = true;
+      G.player.dodging = false;
+      G.player.invincible = 0;
+      G.player.attack(G.enemies);
+});
+
+// ============================================================
+//  SCREEN MANAGEMENT
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function hideAllScreens() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+}
+
+// ============================================================
+//  STORY PANELS
+// ============================================================
+function showStory(levelIdx, callback) {
+  const panels = LEVELS[levelIdx].story;
+  G.storyPanels = panels;
+  G.storyPanel = 0;
+  G._storyCallback = callback;
+  showScreen('storyScreen');
+  renderStoryPanel();
+}
+
+function renderStoryPanel() {
+  const panel = G.storyPanels[G.storyPanel];
+  document.getElementById('storyArt').textContent = panel.art;
+  document.getElementById('storyText').innerHTML = panel.text.replace(/\n/g,'<br>');
+  document.getElementById('storyChapter').textContent = panel.ch;
+  document.getElementById('storyProgress').textContent = `PANEL ${G.storyPanel+1}/${G.storyPanels.length}`;
+  const btn = document.getElementById('storyNextBtn');
+  btn.textContent = G.storyPanel >= G.storyPanels.length-1 ? '¡A PELEAR! ▶' : 'SIGUIENTE ▶';
+}
+
+function nextStoryPanel() {
+  G.storyPanel++;
+  if (G.storyPanel >= G.storyPanels.length) {
+    if (G._storyCallback) G._storyCallback();
+  } else {
+    renderStoryPanel();
+  }
+}
+
+// ============================================================
+//  GAME FLOW
+// ============================================================
+function startGame() {
+  getAudio(); // init audio
+  G.currentLevel = 0;
+  G.player = null;
+  showStory(0, () => beginLevel(0));
+}
+
+function beginLevel(idx) {
+  hideAllScreens();
+  document.getElementById('hud').classList.add('active');
+  G.state = 'playing';
+  G.lastTime = performance.now();
+  setupLevel(idx);
+  requestAnimationFrame(gameLoop);
+  updateHUD();
+
+  // Level transition flash
+  const tr = document.getElementById('levelTransition');
+  const lvl = LEVELS[idx];
+  document.getElementById('transTitle').textContent = `ÉPOCA ${idx+1}/${LEVELS.length}`;
+  document.getElementById('transEpoch').textContent = lvl.name + ' · ' + lvl.year;
+  document.getElementById('transDesc').textContent = lvl.weapon ? `ARMA: ${lvl.weapon.name}` : 'ARMA: PREVIA';
+  tr.classList.add('active');
+  setTimeout(() => tr.classList.remove('active'), 2200);
+}
+
+function nextLevel() {
+  const next = G.currentLevel + 1;
+  if (next >= LEVELS.length) {
+    showScreen('winScreen'); G.state='win'; return;
+  }
+  G.state = 'story';
+  document.getElementById('hud').classList.remove('active');
+  showStory(next, () => beginLevel(next));
+  playLevelUp();
+}
+
+function gameOver() {
+  G.state = 'gameover';
+  document.getElementById('hud').classList.remove('active');
+  const q = DEATH_QUOTES[Math.floor(Math.random()*DEATH_QUOTES.length)];
+  document.getElementById('deathQuote').textContent = q;
+  showScreen('gameOverScreen');
+  playDeath();
+}
+
+function respawnPlayer() {
+  hideAllScreens();
+  document.getElementById('hud').classList.add('active');
+  G.state = 'playing';
+  G.lastTime = performance.now();
+  G.player.hp = G.player.maxHp;
+  G.player.x = 80; G.player.y = G.groundY - 60;
+  G.player.invincible = 1;
+  G.enemies = [];
+  G.bossSpawned = false;
+  G.enemiesKilled = 0;
+  G.phase = 'enemies';
+  for (let i=0;i<3;i++) spawnEnemy();
+  updateHUD();
+}
+
+function goToTitle() {
+  hideAllScreens();
+  document.getElementById('hud').classList.remove('active');
+  showScreen('titleScreen');
+  G.state = 'title';
+}
+
+function showControls() {
+  showDialogue(
+    '⌨ CONTROLES',
+    'WASD/FLECHAS: MOVER | W/↑: SALTAR (x2)\nZ o J: ATAQUE | X o K: ESPECIAL\nSPACIO: ESCUDO (invulnerable)\n\nCOMBO: encadena golpes para más daño',
+    6
+  );
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+G.groundY = Math.floor(window.innerHeight * 0.72);
+G.state = 'title';
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
